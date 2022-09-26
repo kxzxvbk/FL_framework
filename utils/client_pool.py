@@ -22,12 +22,12 @@ class ClientPool:
         """
         self.clients.append(item)
 
-    def aggregate(self, train_round, manager_method=None):
+    def aggregate(self, train_round,):
         """
         aggregate: applying a aggregation method to update the global model
         :return: None
         """
-        if self.method == 'avg':
+        if self.args.aggr_method == 'avg':
             trans_cost = fed_avg(self.clients, self.server)
             self.sync()
         else:

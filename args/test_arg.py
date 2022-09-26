@@ -9,12 +9,12 @@ def args_parser():
     parser.add_argument('--client_num', type=int, default=30, help="number of client")
     parser.add_argument('--client_sample_rate', type=float, default=0.5, help="client_sample_rate")
     parser.add_argument('--batch_size', type=int, default=32, help="batch_size")
-    parser.add_argument('--resize', type=int, default=112, help='resize the input image, -1 means no resizing')
+    parser.add_argument('--resize', type=int, default=-1, help='resize the input image, -1 means no resizing')
     parser.add_argument('--lr', type=float, default=0.01, help="learning rate")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
 
     # model
-    parser.add_argument('--model', type=str, default='resnet18', help='model name')
+    parser.add_argument('--model', type=str, default='cnn', help='model name')
     parser.add_argument('--input_channel', type=int, default=3, help='input channel')
     parser.add_argument('--class_number', type=int, default=10, help='class channel')
 

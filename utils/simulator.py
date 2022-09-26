@@ -96,7 +96,7 @@ class Simulator:
                 #    test_loss += loss
 
             # aggregation and sync
-            trans_cost = client_pool.aggregate(i, self.args.manager_method)
+            trans_cost = client_pool.aggregate(i, )
 
             # logging
             train_accuracies.append(train_acc / total_client)
