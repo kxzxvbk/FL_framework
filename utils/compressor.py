@@ -1,5 +1,4 @@
 from functools import reduce
-trans_cost = 0
 
 
 # fed avg method

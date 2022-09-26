@@ -23,7 +23,8 @@ def args_parser():
     parser.add_argument('--start_round', type=int, default=0, help='round to start with')
     parser.add_argument('--device', type=int, default=0, help="GPU ID, -1 for CPU")
 
-    parser.add_argument('--sample_method', type=str, default='iid', help="method for sampling")
+    parser.add_argument('--sample_method', type=str, default='dirichlet', help="method for sampling")
+    parser.add_argument('--alpha', type=float, default=0.8, help="alpha for dirichlet distribution")
     parser.add_argument('--test_freq', type=int, default=1, help="rounds of testing")
     parser.add_argument('--loss', type=str, default='CrossEntropyLoss', help='loss type')
     parser.add_argument('--optimizer', type=str, default='sgd', help='optimizer type')

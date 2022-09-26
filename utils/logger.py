@@ -6,7 +6,8 @@ class Logger:
     def __init__(self, path):
         self.path = path
         if os.path.exists(path):
-            raise OSError('Duplicated logging path!')
+            # raise OSError('Duplicated logging path!')
+            pass
         with open(self.path, 'w') as f:
             f.write('Created at ' + time.asctime(time.localtime(time.time())) + '\n')
 

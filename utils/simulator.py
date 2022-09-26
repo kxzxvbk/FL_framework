@@ -29,8 +29,10 @@ class Simulator:
         train_set = DatasetConstructor(self.args).get_dataset()
         test_set = DatasetConstructor(self.args).get_dataset(train=False)
 
-        # split dataset into clients
-        train_sets = sample(self.args.sample_method, train_set, self.args.client_num)
+        # split dataset into clients. alpha affects the distribution for dirichlet non-iid sampling.
+        # If you don't use dirichlet, this parameter can be omitted.
+        train_sets = sample(self.args.sample_method, train_set, self.args.client_num, alpha=self.args.alpha)
+
         # if you need all clients to test locally use next line to split test sets
         # test_sets = sample(self.args.sample_method, test_set, self.args.client_num)
 

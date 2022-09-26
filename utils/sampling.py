@@ -17,10 +17,14 @@ class MyDataset(data.Dataset):
         return len(self.indexes)
 
 
-def sample(method, dataset, client_number):
+def sample(method, dataset, client_number, alpha=1.):
     assert method in support_sampling_method
     if method == 'iid':
         return iid_sampling(dataset, client_number)
+    elif method == 'dirichlet':
+        data_labels = np.stack([dataset[i][1] for i in range(len(dataset))], axis=0)
+        indexes = dirichlet_sampling(data_labels, client_number, alpha=alpha)
+        return [MyDataset(tot_data=dataset, indexes=indexes[i]) for i in range(client_number)]
 
 
 def iid_sampling(dataset, client_number):
@@ -36,21 +40,23 @@ def iid_sampling(dataset, client_number):
 
 def dirichlet_sampling(dataset, client_number, alpha):
     n_classes = 10
+    # (#label, #client) label_distribution[i, j] means the ratio of samples of class i in client j.
+    # Thus, np.sum(label_distribution, axis=1) = np.ones()
     label_distribution = np.random.dirichlet([alpha] * client_number, n_classes)
-    # (K, N)的类别标签分布矩阵X，记录每个client占有每个类别的多少
 
-    class_idcs = [np.argwhere(dataset == y).flatten()
-                  for y in range(n_classes)]
-    # 记录每个K个类别对应的样本下标
+    # recording the sample indexes for each class
+    class_indexes = [np.argwhere(dataset == y).flatten()
+                     for y in range(n_classes)]
+    for item in class_indexes:
+        np.random.shuffle(item)
 
-    client_idcs = [[] for _ in range(client_number)]
-    # 记录N个client分别对应样本集合的索引
-    for c, fracs in zip(class_idcs, label_distribution):
-        # np.split按照比例将类别为k的样本划分为了N个子集
-        # for i, idcs 为遍历第i个client对应样本集合的索引
-        for i, idcs in enumerate(np.split(c, (np.cumsum(fracs)[:-1] * len(c)).astype(int))):
-            client_idcs[i] += [idcs]
+    client_indexes = [[] for _ in range(client_number)]
+    for c, fracs in zip(class_indexes, label_distribution):
+        # c: total indexes for each class
+        # fracs: distribution over each client
+        for i, idc in enumerate(np.split(c, (np.cumsum(fracs)[:-1] * len(c)).astype(int))):
+            client_indexes[i] += [idc]
 
-    client_idcs = [np.concatenate(idcs) for idcs in client_idcs]
+    client_indexes = [np.concatenate(idc) for idc in client_indexes]
 
-    return client_idcs
+    return client_indexes
