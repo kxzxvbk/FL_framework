@@ -36,7 +36,7 @@ class DatasetConstructor:
                 transform = transforms.Compose([
                     transforms.ToTensor(),
                 ])
-            return datasets.CIFAR10(os.path.join(path, 'CIFAR10'), train=train, download=False, transform=transform)
+            return datasets.CIFAR10(os.path.join(path, 'CIFAR10'), train=train, download=True, transform=transform)
 
         elif self.dataset == 'fashion_mnist':
             if self.resize > 0:

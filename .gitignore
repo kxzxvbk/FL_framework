@@ -1,1 +1,4 @@
 .idea
+logging/
+data/
+model_checkpoints/

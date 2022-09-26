@@ -34,10 +34,7 @@ class Client:
         self.fed_keys = []  # only weights in fed_keys will use fed-learning to gather
         if test_dataset:
             self.test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size)
-        self.compress_ratio = args.compress_ratio
-        self.increment_svd = args.increment_svd
-        self.comp_bias = args.compress_bias
-        self.comp_other = args.compress_other
+
         self.start_round = args.start_round
 
     def set_fed_keys(self, keys):

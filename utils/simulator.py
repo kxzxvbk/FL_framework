@@ -7,6 +7,7 @@ from utils.server import Server
 from utils.utils import get_params_number
 import numpy as np
 from torch.utils import data
+import tqdm
 import torch
 
 import os
@@ -61,7 +62,6 @@ class Simulator:
         # set fed keys in each client and init compression settings
         client_pool.set_fed_keys()
         client_pool.sync()
-        client_pool.setup_compression_settings(method=self.args.aggr_method, compress_ratio=self.args.compress_ratio)
         train_accuracies = []
         train_losses = []
         test_accuracies = []
@@ -73,8 +73,9 @@ class Simulator:
             train_acc = 0
             train_loss = 0
             total_client = 0
+            print('Starting round: ' + str(i))
 
-            for j in range(self.args.client_num):
+            for j in tqdm.tqdm(range(self.args.client_num)):
                 total_client += 1
                 client = client_pool[j]
                 acc, loss = client.train(

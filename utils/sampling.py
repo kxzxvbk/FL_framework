@@ -43,7 +43,7 @@ def dirichlet_sampling(dataset, client_number, alpha):
                   for y in range(n_classes)]
     # 记录每个K个类别对应的样本下标
 
-    client_idcs = [[] for _ in range(n_clients)]
+    client_idcs = [[] for _ in range(client_number)]
     # 记录N个client分别对应样本集合的索引
     for c, fracs in zip(class_idcs, label_distribution):
         # np.split按照比例将类别为k的样本划分为了N个子集

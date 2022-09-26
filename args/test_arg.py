@@ -9,7 +9,7 @@ def args_parser():
     parser.add_argument('--client_num', type=int, default=30, help="number of client")
     parser.add_argument('--client_sample_rate', type=float, default=0.5, help="client_sample_rate")
     parser.add_argument('--batch_size', type=int, default=32, help="batch_size")
-    parser.add_argument('--resize', type=int, default=224, help='resize the input image, -1 means no resizing')
+    parser.add_argument('--resize', type=int, default=112, help='resize the input image, -1 means no resizing')
     parser.add_argument('--lr', type=float, default=0.01, help="learning rate")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
 
