@@ -2,3 +2,4 @@
 logging/
 data/
 model_checkpoints/
+*/__pycache__
