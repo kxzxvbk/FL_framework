@@ -124,7 +124,7 @@ class Simulator:
                 # logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                 #                .format(i, test_acc, test_loss))
 
-                np.savez('results', np.array(train_accuracies),
-                         np.array(train_loss),
-                         np.array(test_accuracies),
-                         np.array(test_losses))
+        np.savez('results', np.array(train_accuracies),
+                 np.array(train_losses),
+                 np.array(test_accuracies),
+                 np.array(test_losses))
