@@ -14,7 +14,7 @@ def args_parser():
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
 
     # model
-    parser.add_argument('--model', type=str, default='cnn', help='model name')
+    parser.add_argument('--model', type=str, default='cifarres', help='model name')
     parser.add_argument('--input_channel', type=int, default=3, help='input channel')
     parser.add_argument('--class_number', type=int, default=10, help='class channel')
 

@@ -3,7 +3,8 @@ import torchvision
 import torch
 from torch import nn, Tensor
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
-import models.resnet as resnet  
+import models.resnet as resnet
+from models.myres import CifarRes
 
 
 class ModelConstructor:
@@ -63,6 +64,8 @@ class ModelConstructor:
             return resnet.resnet50()
         elif self.args.model == 'resnet34ada':
             return resnet.resnet34(num_classes=self.args.class_number)
+        elif self.args.model == 'cifarres':
+            return CifarRes()
 
         elif self.args.model == 'transformer':
             ntokens = 28783  # size of vocabulary
