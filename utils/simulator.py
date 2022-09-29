@@ -77,11 +77,15 @@ class Simulator:
             total_client = 0
             print('Starting round: ' + str(i))
 
-            for j in tqdm.tqdm(range(self.args.client_num)):
+            participated_clients = np.array(range(self.args.client_num))
+            participated_clients = sorted(list(np.random.choice(participated_clients,
+                                                                int(self.args.client_sample_rate *
+                                                                    participated_clients.shape[0]), replace=False)))
+            for j in tqdm.tqdm(participated_clients):
                 total_client += 1
                 client = client_pool[j]
                 acc, loss = client.train(
-                    lr=self.args.lr,
+                    lr=self.args.lr * (self.args.decay_factor ** i),
                     momentum=self.args.momentum,
                     optimizer=self.args.optimizer,
                     loss=self.args.loss,
