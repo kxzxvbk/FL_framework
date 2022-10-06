@@ -27,8 +27,8 @@ import moco.builder
 from models.myres import CifarRes
 
 model_names = sorted(name for name in models.__dict__
-    if name.islower() and not name.startswith("__")
-    and callable(models.__dict__[name]))
+                     if name.islower() and not name.startswith("__")
+                     and callable(models.__dict__[name]))
 
 parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 # parser.add_argument('data', metavar='DIR',
@@ -36,8 +36,8 @@ parser = argparse.ArgumentParser(description='PyTorch ImageNet Training')
 parser.add_argument('-a', '--arch', metavar='ARCH', default='resnet50',
                     choices=model_names,
                     help='model architecture: ' +
-                        ' | '.join(model_names) +
-                        ' (default: resnet50)')
+                         ' | '.join(model_names) +
+                         ' (default: resnet50)')
 parser.add_argument('-j', '--workers', default=0, type=int, metavar='N',
                     help='number of data loading workers (default: 32)')
 parser.add_argument('--epochs', default=200, type=int, metavar='N',
@@ -99,6 +99,57 @@ parser.add_argument('--cos', action='store_true',
                     help='use cosine lr schedule')
 
 
+def linear_protocal(model, device):
+    criterion = nn.CrossEntropyLoss()
+    model.init_eval()
+    optimizer = torch.optim.SGD(model.parameters(), 0.03,
+                                momentum=0.9,
+                                weight_decay=1e-4)
+
+    augmentation = [transforms.Normalize(mean=[0.4913997551666284, 0.48215855929893703, 0.4465309133731618],
+                                         std=[0.24703225141799082, 0.24348516474564, 0.26158783926049628])]
+    train_dataset = datasets.CIFAR10(os.path.join('./data', 'CIFAR10'), train=True, download=True,
+                                     transform=transforms.Compose(augmentation))
+    train_loader = torch.utils.data.DataLoader(
+        train_dataset, batch_size=256, shuffle=True,
+        num_workers=0, pin_memory=True, drop_last=False)
+
+    for _, (batch_x, batch_y) in enumerate(train_loader):
+        batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+        o = model.forward_eval(batch_x)
+        lss = criterion(o, batch_y)
+        optimizer.zero_grad()
+        lss.backward()
+        optimizer.step()
+    with torch.no_grad():
+        # test
+        correct = 0
+        total = 0
+        tot_loss = 0
+        model.eval()
+        model.to(device)
+
+        test_dataset = datasets.CIFAR10(os.path.join('./data', 'CIFAR10'), train=False,
+                                        download=True, transform=transforms.Compose(augmentation))
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset, batch_size=256, shuffle=True,
+            num_workers=0, pin_memory=True, drop_last=False)
+
+        for _, (batch_x, batch_y) in enumerate(test_loader):
+            batch_x, batch_y = batch_x.to(device), batch_y.to(device)
+            o = model.forward_eval(batch_x)
+            tot_loss += criterion(o, batch_y).item()
+            y_pred = o.data.max(1, keepdim=True)[1]
+            correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
+            total += batch_y.shape[0]
+
+        avg_acc = correct / total
+        avg_loss = tot_loss / total
+
+        print('linear protocal: ' + str(avg_acc) + '      ' + str(avg_loss))
+        return avg_acc, avg_loss
+
+
 def main():
     args = parser.parse_args()
 
@@ -141,6 +192,7 @@ def main_worker(gpu, ngpus_per_node, args):
     if args.multiprocessing_distributed and args.gpu != 0:
         def print_pass(*args):
             pass
+
         builtins.print = print_pass
 
     if args.gpu is not None:
@@ -245,7 +297,8 @@ def main_worker(gpu, ngpus_per_node, args):
             normalize
         ]
 
-    train_dataset =  datasets.CIFAR10(os.path.join('./data', 'CIFAR10'), train=train, download=True, transform=moco.loader.TwoCropsTransform(transforms.Compose(augmentation)))
+    train_dataset = datasets.CIFAR10(os.path.join('./data', 'CIFAR10'), train=train, download=True
+                                     , transform=moco.loader.TwoCropsTransform(transforms.Compose(augmentation)))
 
     if args.distributed:
         train_sampler = torch.utils.data.distributed.DistributedSampler(train_dataset)
@@ -265,13 +318,15 @@ def main_worker(gpu, ngpus_per_node, args):
         train(train_loader, model, criterion, optimizer, epoch, args)
 
         if not args.multiprocessing_distributed or (args.multiprocessing_distributed
-                and args.rank % ngpus_per_node == 0):
+                                                    and args.rank % ngpus_per_node == 0):
             save_checkpoint({
                 'epoch': epoch + 1,
                 'arch': args.arch,
                 'state_dict': model.state_dict(),
-                'optimizer' : optimizer.state_dict(),
-            }, is_best=False, filename='checkpoint_{:04d}.pth.tar'.format(epoch))
+                'optimizer': optimizer.state_dict(),
+            }, is_best=False, filename='./model_checkpoints/checkpoint_{:04d}.pth.tar'.format(epoch))
+        if epoch % 10 == 0:
+            linear_protocal(model, 0)
 
 
 def train(train_loader, model, criterion, optimizer, epoch, args):
@@ -329,6 +384,7 @@ def save_checkpoint(state, is_best, filename='checkpoint.pth.tar'):
 
 class AverageMeter(object):
     """Computes and stores the average and current value"""
+
     def __init__(self, name, fmt=':f'):
         self.name = name
         self.fmt = fmt
@@ -392,7 +448,7 @@ def accuracy(output, target, topk=(1,)):
 
         res = []
         for k in topk:
-            correct_k = correct[:k].view(-1).float().sum(0, keepdim=True)
+            correct_k = correct[:k].flatten().float().sum(0, keepdim=True)
             res.append(correct_k.mul_(100.0 / batch_size))
         return res
 

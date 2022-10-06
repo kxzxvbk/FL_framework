@@ -5,6 +5,7 @@ from torch import nn, Tensor
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 import models.resnet as resnet
 from models.myres import CifarRes
+from models.moco import MoCo
 
 
 class ModelConstructor:
@@ -66,6 +67,9 @@ class ModelConstructor:
             return resnet.resnet34(num_classes=self.args.class_number)
         elif self.args.model == 'cifarres':
             return CifarRes()
+
+        elif self.args.model == 'moco':
+            return MoCo()
 
         elif self.args.model == 'transformer':
             ntokens = 28783  # size of vocabulary

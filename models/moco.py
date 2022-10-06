@@ -1,4 +1,4 @@
-# Copyright (c) Facebook, Inc. and its affiliates. All Rights Reserved
+from models.myres import CifarRes
 import torch
 import torch.nn as nn
 import copy
@@ -9,7 +9,7 @@ class MoCo(nn.Module):
     Build a MoCo model with: a query encoder, a key encoder, and a queue
     https://arxiv.org/abs/1911.05722
     """
-    def __init__(self, base_encoder, dim=128, K=65536, m=0.999, T=0.07, mlp=False):
+    def __init__(self, base_encoder=CifarRes, dim=128, K=65536, m=0.999, T=0.07, mlp=True):
         """
         dim: feature dimension (default: 128)
         K: queue size; number of negative keys (default: 65536)
@@ -53,7 +53,7 @@ class MoCo(nn.Module):
     @torch.no_grad()
     def _dequeue_and_enqueue(self, keys):
         # gather keys before updating queue
-        keys = concat_all_gather(keys)
+        # keys = concat_all_gather(keys)
 
         batch_size = keys.shape[0]
 
@@ -72,27 +72,16 @@ class MoCo(nn.Module):
         Batch shuffle, for making use of BatchNorm.
         *** Only support DistributedDataParallel (DDP) model. ***
         """
-        # gather from all gpus
-        batch_size_this = x.shape[0]
-        x_gather = concat_all_gather(x)
+        x_gather = x
         batch_size_all = x_gather.shape[0]
-
-        num_gpus = batch_size_all // batch_size_this
 
         # random shuffle index
         idx_shuffle = torch.randperm(batch_size_all).cuda()
 
-        # broadcast to all gpus
-        torch.distributed.broadcast(idx_shuffle, src=0)
-
         # index for restoring
         idx_unshuffle = torch.argsort(idx_shuffle)
 
-        # shuffled index for this gpu
-        gpu_idx = torch.distributed.get_rank()
-        idx_this = idx_shuffle.view(num_gpus, -1)[gpu_idx]
-
-        return x_gather[idx_this], idx_unshuffle
+        return x_gather, idx_unshuffle
 
     @torch.no_grad()
     def _batch_unshuffle_ddp(self, x, idx_unshuffle):
@@ -101,15 +90,11 @@ class MoCo(nn.Module):
         *** Only support DistributedDataParallel (DDP) model. ***
         """
         # gather from all gpus
-        batch_size_this = x.shape[0]
-        x_gather = concat_all_gather(x)
+        x_gather = x
         batch_size_all = x_gather.shape[0]
 
-        num_gpus = batch_size_all // batch_size_this
-
         # restored index for this gpu
-        gpu_idx = torch.distributed.get_rank()
-        idx_this = idx_unshuffle.view(num_gpus, -1)[gpu_idx]
+        idx_this = idx_unshuffle
 
         return x_gather[idx_this]
 
@@ -184,3 +169,6 @@ def concat_all_gather(tensor):
 
     output = torch.cat(tensors_gather, dim=0)
     return output
+
+
+
