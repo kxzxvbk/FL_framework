@@ -11,8 +11,8 @@ def args_parser():
     parser.add_argument('--decay_factor', type=float, default=0.97, help="decay factor of learning rate")
     parser.add_argument('--aggr_method', type=str, default='avg', help='aggregation method')
     parser.add_argument('--fed_dict', type=str, default='all', help='only keys in this will use fed-learning')
-    parser.add_argument('--sample_method', type=str, default='iid', help="method for sampling")
-    parser.add_argument('--alpha', type=float, default=0.8, help="alpha for dirichlet distribution")
+    parser.add_argument('--sample_method', type=str, default='dirichlet', help="method for sampling")
+    parser.add_argument('--alpha', type=float, default=0.2, help="alpha for dirichlet distribution")
 
     # training arguments
     parser.add_argument('--batch_size', type=int, default=128, help="batch_size")
@@ -35,8 +35,8 @@ def args_parser():
     parser.add_argument('--resize', type=int, default=-1, help='resize the input image, -1 means no resizing')
 
     # logging and evaluation
-    parser.add_argument('--test_freq', type=int, default=5, help="rounds of testing")
-    parser.add_argument('--logging_path', type=str, default='./logging/moco_C10_shuffle_loc10_bs128_lr0_015_restart_mo', help='logging path')
-    parser.add_argument('--model_path', type=str, default='./model_checkpoints/moco_model.ckpt')
+    parser.add_argument('--test_freq', type=int, default=1, help="rounds of testing")
+    parser.add_argument('--logging_path', type=str, default='./logging/moco_C10_shuffle_loc10_bs128_lr0_015_dirich_0.2', help='logging path')
+    parser.add_argument('--model_path', type=str, default='./model_checkpoints/moco1_model.ckpt')
     args = parser.parse_args()
     return args

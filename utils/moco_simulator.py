@@ -9,7 +9,7 @@ import numpy as np
 from torch.utils import data
 import tqdm
 import torch
-
+from torch.utils.tensorboard import SummaryWriter
 import os
 
 
@@ -23,6 +23,7 @@ class Simulator:
 
     def run(self):
         client_pool = ClientPool(self.args)
+        tb_logger = SummaryWriter(self.args.logging_path)
         logger = Logger(self.args.logging_path)
 
         # load dataset
@@ -55,7 +56,7 @@ class Simulator:
         else:
             glob_dict = client_pool[0].get_state_dict(self.args.fed_dict)
         if self.args.resume:
-            glob_dict = torch.load('./model_checkpoints/model.ckpt')
+            glob_dict = torch.load('./model_checkpoints/iid.ckpt')
 
         server = Server(self.args.device, data.DataLoader(test_set, batch_size=32, shuffle=True))
         server.add_attr(name='glob_dict', item=glob_dict)
@@ -64,6 +65,10 @@ class Simulator:
         # set fed keys in each client and init compression settings
         client_pool.set_fed_keys()
         client_pool.sync()
+        # for evaluation
+        # test_acc, test_loss = server.test(model=client_pool[0].model, train_epoch=30)
+        # assert False
+
         train_accuracies = []
         train_losses = []
         test_accuracies = []
@@ -109,18 +114,25 @@ class Simulator:
             # train_losses.append(train_loss / total_client)
             # trans_costs.append(trans_cost)
             logger.logging('epoch:{}, train_acc@1: {:.4f}, train_acc@5: {:.4f}, train_loss: {:.4f}, trans_cost: {:.4f}M'
-                           .format(i, train_acc[1], train_acc[5], train_loss, trans_cost / 1e6))
+                           .format(i, train_acc[1] / len(participated_clients),
+                                   train_acc[5] / len(participated_clients),
+                                   train_loss / len(participated_clients), trans_cost / 1e6))
+            tb_logger.add_scalar('train/top1_acc', train_acc[1] / len(participated_clients), i)
+            tb_logger.add_scalar('train/top5_acc', train_acc[5] / len(participated_clients), i)
+            tb_logger.add_scalar('train/loss', train_loss / len(participated_clients), i)
 
             if i % self.args.test_freq == 0:
-                test_acc, test_loss = server.test(model=client_pool[0].model, )
+                test_acc, test_loss = server.test(model=client_pool[0].model, train_epoch=30)
+                if not os.path.exists('./model_checkpoints'):
+                    os.makedirs('./model_checkpoints')
+                if len(test_accuracies) == 0 or max(test_accuracies) <= test_acc:
+                    torch.save(client_pool.server['glob_dict'], self.args.model_path)
                 test_losses.append(test_loss)
                 test_accuracies.append(test_acc)
                 logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                                .format(i, test_accuracies[-1], test_losses[-1]))
-
-                if not os.path.exists('./model_checkpoints'):
-                    os.makedirs('./model_checkpoints')
-                torch.save(client_pool.server['glob_dict'], './model_checkpoints/model.ckpt')
+                tb_logger.add_scalar('test/top1_acc', test_accuracies[-1], i)
+                tb_logger.add_scalar('test/loss', test_losses[-1], i)
 
                 # if you want to test all the training set, use following code.
                 # BE AWARE: the
@@ -130,6 +142,9 @@ class Simulator:
                 # logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                 #                .format(i, test_acc, test_loss))
 
+        test_acc, test_loss = server.test(model=client_pool[0].model, train_epoch=30)
+        logger.logging('Final evaluation, test_acc: {:.4f}, test_loss: {:.4f}'
+                       .format(test_acc, test_loss))
         np.savez('results', np.array(train_accuracies),
                  np.array(train_losses),
                  np.array(test_accuracies),

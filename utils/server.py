@@ -27,7 +27,7 @@ class Server:
         for k in grad:
             state_dict[k] = state_dict[k] + lr * grad[k]
 
-    def test(self, model, test_loader=None):
+    def test(self, model, test_loader=None, train_epoch=3):
         if test_loader:
             old_loader = self.test_loader
             self.test_loader = test_loader
@@ -39,6 +39,7 @@ class Server:
         optimizer = torch.optim.SGD(model.parameters(), 0.03,
                                     momentum=0.9,
                                     weight_decay=1e-4)
+        # optimizer = torch.optim.Adam(model.parameters(), 0.03, weight_decay=1e-4)
 
         augmentation = [transforms.ToTensor(), transforms.Normalize(
             mean=[0.4913997551666284, 0.48215855929893703, 0.4465309133731618],
@@ -49,7 +50,7 @@ class Server:
             train_dataset, batch_size=256, shuffle=True,
             num_workers=0, pin_memory=True, drop_last=False)
 
-        for _ in range(1):
+        for _ in range(train_epoch):
             for _, (batch_x, batch_y) in enumerate(train_loader):
                 batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
                 o = model.forward_eval(batch_x)
