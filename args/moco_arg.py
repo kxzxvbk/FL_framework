@@ -22,12 +22,13 @@ def args_parser():
     parser.add_argument('--start_round', type=int, default=0, help='round to start with')
     parser.add_argument('--device', type=int, default=0, help="GPU ID, -1 for CPU")
     parser.add_argument('--loss', type=str, default='CrossEntropyLoss', help='loss type')
-    parser.add_argument('--optimizer', type=str, default='adam', help='optimizer type')
+    parser.add_argument('--optimizer', type=str, default='sgd', help='optimizer type')
 
     # model
     parser.add_argument('--model', type=str, default='moco', help='model name')
     parser.add_argument('--input_channel', type=int, default=3, help='input channel')
     parser.add_argument('--class_number', type=int, default=10, help='class channel')
+    parser.add_argument('--use_global_queue', type=bool, default=True, help='global pool')
 
     # dataset
     parser.add_argument('--dataset', type=str, default='cifar10', help="name of dataset")
@@ -36,7 +37,7 @@ def args_parser():
 
     # logging and evaluation
     parser.add_argument('--test_freq', type=int, default=5, help="rounds of testing")
-    parser.add_argument('--logging_path', type=str, default='./logging/moco_C10_shuffle_loc10_bs128_lr0_015_restart_mo', help='logging path')
+    parser.add_argument('--logging_path', type=str, default='./logging/moco_C10_shuffle_loc10_bs128_lr0_015_global', help='logging path')
     parser.add_argument('--model_path', type=str, default='./model_checkpoints/moco_model.ckpt')
     args = parser.parse_args()
     return args

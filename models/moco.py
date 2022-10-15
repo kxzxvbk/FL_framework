@@ -45,6 +45,7 @@ class MoCo(nn.Module):
         if not use_global_queue:
             self.register_buffer("queue", torch.randn(dim, K))
             self.queue = nn.functional.normalize(self.queue, dim=0)
+        else:
             self.base_ptr = GLOBAL_QUEUE_SIZE // 10 * client_id
 
         self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
@@ -173,9 +174,9 @@ class MoCo(nn.Module):
         l_pos = torch.einsum('nc,nc->n', [q, k]).unsqueeze(-1)
         # negative logits: NxK
         if not self.use_global_queue:
-            l_neg = torch.einsum('nc,ck->nk', [q, self.queue.clone().detach()])
+            l_neg = torch.einsum('nc,ck->nk', [q, self.queue.clone().detach().cuda()])
         else:
-            l_neg = torch.einsum('nc,ck->nk', [q, MoCo.global_queue.clone().detach()])
+            l_neg = torch.einsum('nc,ck->nk', [q, MoCo.global_queue.clone().detach().cuda()])
 
         # logits: Nx(1+K)
         logits = torch.cat([l_pos, l_neg], dim=1)

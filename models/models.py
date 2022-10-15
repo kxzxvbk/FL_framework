@@ -17,7 +17,7 @@ class ModelConstructor:
     def __init__(self, args):
         self.args = args
 
-    def get_model(self):
+    def get_model(self, client_id=-1):
         if self.args.model == 'cnn':
             return CNNModel(class_number=self.args.class_number, input_channel=self.args.input_channel)
         elif self.args.model == 'mlp':
@@ -69,7 +69,7 @@ class ModelConstructor:
             return CifarRes()
 
         elif self.args.model == 'moco':
-            return MoCo()
+            return MoCo(client_id=client_id, use_global_queue=self.args.use_global_queue)
 
         elif self.args.model == 'transformer':
             ntokens = 28783  # size of vocabulary

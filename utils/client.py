@@ -50,7 +50,7 @@ class Client:
     def __init__(self, train_dataset, args, client_id, test_dataset=None):
         self.train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size,
                                            shuffle=True, drop_last=True)
-        self.model = ModelConstructor(args).get_model()
+        self.model = ModelConstructor(args).get_model(client_id)
         self.device = args.device if args.device >= 0 else 'cpu'
         self.client_id = client_id
         self.fed_keys = []  # only weights in fed_keys will use fed-learning to gather
@@ -71,6 +71,7 @@ class Client:
 
     def train(self, lr, momentum, optimizer, loss, local_eps=1):
         # print('Training for client:' + str(self.client_id))
+        self.model.reset_encoder_k()
         self.model.train()
         self.model.to(self.device)
 
