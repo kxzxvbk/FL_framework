@@ -92,7 +92,10 @@ class MoCo(nn.Module):
         except:
             print("Queue overflow encountered")
             print(keys.shape)
-            print(self.queue[:, ptr:ptr + batch_size].shape)
+            if self.use_global_queue:
+                print(MoCo.global_queue[:, ptr:ptr + batch_size].shape)
+            else:
+                print(self.queue[:, ptr:ptr + batch_size].shape)
         if not self.use_global_queue:
             ptr = (ptr + batch_size) % self.K  # move pointer
         else:
