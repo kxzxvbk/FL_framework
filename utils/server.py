@@ -38,7 +38,7 @@ class Server:
         model.to(self.device)
         optimizer = torch.optim.SGD(model.parameters(), 0.03,
                                     momentum=0.9,
-                                    weight_decay=1e-4)
+                                    weight_decay=1e-4,)
         # optimizer = torch.optim.Adam(model.parameters(), 0.03, weight_decay=1e-4)
 
         augmentation = [transforms.ToTensor(), transforms.Normalize(

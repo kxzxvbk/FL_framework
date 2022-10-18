@@ -69,6 +69,41 @@ class Client:
 
         self.model.load_state_dict(state_dict)
 
+    def train_epoch(self, optimizer, loss):
+        self.model.train()
+        self.model.to(self.device)
+
+        accs = {1: [], 5: []}
+        tot_loss = []
+
+        op = optimizer
+        criterion = get_loss(loss)
+
+        for i, (images, _) in enumerate(self.train_dataloader):
+            images[0] = images[0].to(self.device)
+            images[1] = images[1].to(self.device)
+
+            # compute output
+            output, target = self.model(im_q=images[0], im_k=images[1])
+            loss = criterion(output, target)
+
+            # acc1/acc5 are (K+1)-way contrast classifier accuracy
+            # measure accuracy and record loss
+            acc1, acc5 = accuracy(output, target, topk=(1, 5))
+            accs[1].append(acc1.item())
+            accs[5].append(acc5.item())
+            tot_loss.append(loss.item())
+
+            # compute gradient and do SGD step
+            op.zero_grad()
+            loss.backward()
+            op.step()
+
+        avg_acc = {1: sum(accs[1]) / len(accs[1]), 5: sum(accs[5]) / len(accs[5])}
+        avg_loss = sum(tot_loss) / len(tot_loss)
+        self.model.to('cpu')
+        return avg_acc, avg_loss
+
     def train(self, lr, momentum, optimizer, loss, local_eps=1):
         # print('Training for client:' + str(self.client_id))
         self.model.reset_encoder_k()

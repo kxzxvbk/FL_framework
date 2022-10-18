@@ -30,7 +30,7 @@ class GaussianBlur(object):
 
 
 class DatasetConstructor:
-    support_dataset = ['mnist', 'cifar10', 'fashion_mnist']
+    support_dataset = ['mnist', 'cifar10', 'fashion_mnist', 'cifar10_raw']
 
     def __init__(self, args):
         self.dataset = args.dataset.lower()
@@ -68,6 +68,9 @@ class DatasetConstructor:
             ]
             return datasets.CIFAR10(os.path.join(path, 'CIFAR10'), train=train, download=True,
                                     transform=TwoCropsTransform(transforms.Compose(augmentation)))
+
+        elif self.dataset == 'cifar10_raw':
+            return datasets.CIFAR10(os.path.join(path, 'CIFAR10'), train=train, download=True)
 
         elif self.dataset == 'fashion_mnist':
             if self.resize > 0:

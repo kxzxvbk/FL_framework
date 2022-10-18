@@ -136,9 +136,9 @@ class MoCo(nn.Module):
         return x_gather[idx_this]
 
     def init_eval(self):
-        for param in self.encoder_q.parameters():
-            param.requires_grad = False
         self.encoder_qe = copy.deepcopy(self.encoder_q)
+        for param in self.encoder_qe.parameters():
+            param.requires_grad = False
         self.encoder_qe.fc = nn.Linear(512, 10)
         self.encoder_qe.eval()
 
