@@ -69,7 +69,7 @@ class ModelConstructor:
             return CifarRes()
 
         elif self.args.model == 'moco':
-            return MoCo(client_id=client_id, use_global_queue=self.args.use_global_queue)
+            return MoCo(client_id=client_id, use_global_queue=self.args.use_global_queue, dim=self.args.kdim)
 
         elif self.args.model == 'transformer':
             ntokens = 28783  # size of vocabulary

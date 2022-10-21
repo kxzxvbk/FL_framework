@@ -27,6 +27,9 @@ class MoCo(nn.Module):
         self.T = T
         self.use_global_queue = use_global_queue
 
+        if dim != 128 and use_global_queue:
+            MoCo.global_queue = nn.functional.normalize(torch.randn(dim, GLOBAL_QUEUE_SIZE), dim=0)
+
         # create the encoders
         # num_classes is the output fc dimension
         self.encoder_q = base_encoder(num_classes=dim)

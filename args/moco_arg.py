@@ -34,10 +34,11 @@ def args_parser():
     parser.add_argument('--dataset', type=str, default='cifar10', help="name of dataset")
     parser.add_argument('--data_path', type=str, default='./data', help='data path')
     parser.add_argument('--resize', type=int, default=-1, help='resize the input image, -1 means no resizing')
+    parser.add_argument('--kdim', type=int, default=64, help='projected feature dimension')
 
     # logging and evaluation
     parser.add_argument('--test_freq', type=int, default=5, help="rounds of testing")
-    parser.add_argument('--logging_path', type=str, default='./logging/moco_C10_shuffle_loc10_bs128_lr0_015_global', help='logging path')
+    parser.add_argument('--logging_path', type=str, default='./logging/moco_C10_global_iid_kdim64', help='logging path')
     parser.add_argument('--model_path', type=str, default='./model_checkpoints/moco_model.ckpt')
     args = parser.parse_args()
     return args
