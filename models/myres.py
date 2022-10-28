@@ -34,7 +34,7 @@ class ResBlock(nn.Module):
 
 
 class CifarRes(nn.Module):
-    def __init__(self):
+    def __init__(self, num_classes=10):
         super().__init__()
         self.pre = nn.Sequential(
             nn.Conv2d(3, 64, kernel_size=3, padding=1),
@@ -54,8 +54,8 @@ class CifarRes(nn.Module):
         self.head = nn.Sequential(
             nn.AdaptiveAvgPool2d((1, 1)),
             nn.Flatten(),
-            nn.Linear(512, 10)
         )
+        self.fc = nn.Linear(512, num_classes)
 
     def forward(self, x):
         y = self.pre(x)
@@ -63,4 +63,5 @@ class CifarRes(nn.Module):
         y = self.conv1(y)
         y = self.res2(y)
         y = self.head(y)
+        y = self.fc(y)
         return y
