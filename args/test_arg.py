@@ -6,7 +6,7 @@ def args_parser():
     # federated arguments
     parser.add_argument('--loc_eps', type=int, default=10, help="rounds of training")
     parser.add_argument('--glob_eps', type=int, default=200, help="global training round")
-    parser.add_argument('--client_num', type=int, default=30, help="number of client")
+    parser.add_argument('--client_num', type=int, default=10, help="number of client")
     parser.add_argument('--client_sample_rate', type=float, default=1, help="client_sample_rate")
     parser.add_argument('--decay_factor', type=float, default=0.97, help="decay factor of learning rate")
     parser.add_argument('--aggr_method', type=str, default='avg', help='aggregation method')
@@ -15,7 +15,7 @@ def args_parser():
     parser.add_argument('--alpha', type=float, default=0.2, help="alpha for dirichlet distribution")
 
     # training arguments
-    parser.add_argument('--batch_size', type=int, default=32, help="batch_size")
+    parser.add_argument('--batch_size', type=int, default=128, help="batch_size")
     parser.add_argument('--lr', type=float, default=0.01, help="learning rate")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
     parser.add_argument('--resume', type=bool, default=False, help="whether to resume")

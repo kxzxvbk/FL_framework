@@ -7,6 +7,7 @@ from utils.server import Server
 from utils.utils import get_params_number
 import numpy as np
 from torch.utils import data
+from torch.utils.tensorboard import SummaryWriter
 import tqdm
 import torch
 
@@ -23,6 +24,7 @@ class Simulator:
 
     def run(self):
         client_pool = ClientPool(self.args)
+        tb_logger = SummaryWriter(self.args.logging_path)
         logger = Logger(self.args.logging_path)
 
         # load dataset
@@ -81,11 +83,12 @@ class Simulator:
             participated_clients = sorted(list(np.random.choice(participated_clients,
                                                                 int(self.args.client_sample_rate *
                                                                     participated_clients.shape[0]), replace=False)))
+            cur_lr = self.args.lr * (self.args.decay_factor ** i)
             for j in tqdm.tqdm(participated_clients):
                 total_client += 1
                 client = client_pool[j]
                 acc, loss = client.train(
-                    lr=self.args.lr * (self.args.decay_factor ** i),
+                    lr=cur_lr,
                     momentum=self.args.momentum,
                     optimizer=self.args.optimizer,
                     loss=self.args.loss,
@@ -110,6 +113,9 @@ class Simulator:
             trans_costs.append(trans_cost)
             logger.logging('epoch:{}, train_acc: {:.4f}, train_loss: {:.4f}, trans_cost: {:.4f}M'
                            .format(i, train_accuracies[-1], train_losses[-1], trans_costs[-1] / 1e6))
+            tb_logger.add_scalar('train/acc', train_accuracies[-1], i)
+            tb_logger.add_scalar('train/loss',  train_losses[-1], i)
+            tb_logger.add_scalar('train/lr', cur_lr, i)
 
             if i % self.args.test_freq == 0:
                 test_acc, test_loss = server.test(model=client_pool[0].model, loss=self.args.loss)
@@ -117,6 +123,8 @@ class Simulator:
                 test_accuracies.append(test_acc)
                 logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                                .format(i, test_accuracies[-1], test_losses[-1]))
+                tb_logger.add_scalar('test/acc', test_accuracies[-1], i)
+                tb_logger.add_scalar('test/loss', test_losses[-1], i)
 
                 if not os.path.exists('./model_checkpoints'):
                     os.makedirs('./model_checkpoints')
