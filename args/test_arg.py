@@ -16,7 +16,7 @@ def args_parser():
 
     # training arguments
     parser.add_argument('--batch_size', type=int, default=128, help="batch_size")
-    parser.add_argument('--lr', type=float, default=0.01, help="learning rate")
+    parser.add_argument('--lr', type=float, default=0.015, help="learning rate")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
     parser.add_argument('--resume', type=bool, default=False, help="whether to resume")
     parser.add_argument('--start_round', type=int, default=0, help='round to start with')
