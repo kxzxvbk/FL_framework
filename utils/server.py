@@ -52,4 +52,6 @@ class Server:
         if test_loader:
             self.test_loader = old_loader
 
-        return avg_acc, avg_loss
+        res_dict = {'acc': avg_acc, 'loss': avg_loss}
+
+        return res_dict

@@ -118,13 +118,15 @@ class Simulator:
             tb_logger.add_scalar('train/lr', cur_lr, i)
 
             if i % self.args.test_freq == 0:
-                test_acc, test_loss = server.test(model=client_pool[0].model, loss=self.args.loss)
+                res_dict = server.test(model=client_pool[0].model, loss=self.args.loss)
+                test_loss, test_acc = res_dict['loss'], res_dict['acc']
                 test_losses.append(test_loss)
                 test_accuracies.append(test_acc)
                 logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                                .format(i, test_accuracies[-1], test_losses[-1]))
-                tb_logger.add_scalar('test/acc', test_accuracies[-1], i)
-                tb_logger.add_scalar('test/loss', test_losses[-1], i)
+
+                for k in res_dict:
+                    tb_logger.add_scalar('test/{}'.format(k), res_dict[k], i)
 
                 if not os.path.exists('./model_checkpoints'):
                     os.makedirs('./model_checkpoints')
