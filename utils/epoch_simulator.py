@@ -105,6 +105,12 @@ class Simulator:
                 train_acc[k] /= self.args.loc_eps
             train_loss /= self.args.loc_eps
 
+            # test for client 0
+            if i % self.args.test_freq == 0:
+                info = server.test(model=client_pool[0].model, train_epoch=30)
+                for k in info:
+                    tb_logger.add_scalar('test_client0/{}'.format(k), info[k], i)
+
             # aggregation and sync
             trans_cost = client_pool.aggregate(i, )
 
@@ -117,7 +123,8 @@ class Simulator:
             tb_logger.add_scalar('train/loss', train_loss / len(participated_clients), i)
 
             if i % self.args.test_freq == 0:
-                test_acc, test_loss = server.test(model=client_pool[0].model, train_epoch=30)
+                info = server.test(model=client_pool[0].model, train_epoch=30)
+                test_acc, test_loss = info['acc'], info['loss']
                 if not os.path.exists('./model_checkpoints'):
                     os.makedirs('./model_checkpoints')
                 if len(test_accuracies) == 0 or max(test_accuracies) <= test_acc:
@@ -126,21 +133,20 @@ class Simulator:
                 test_accuracies.append(test_acc)
                 logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                                .format(i, test_accuracies[-1], test_losses[-1]))
-                tb_logger.add_scalar('test/top1_acc', test_accuracies[-1], i)
-                tb_logger.add_scalar('test/loss', test_losses[-1], i)
+                for k in info:
+                    tb_logger.add_scalar('test/{}'.format(k), info[k], i)
 
-                test_acc, test_loss = server.test(model=client_pool[0].model, train_epoch=50)
+                info = server.test(model=client_pool[0].model, train_epoch=50)
+                test_acc, test_loss = info['acc'], info['loss']
                 if not os.path.exists('./model_checkpoints'):
                     os.makedirs('./model_checkpoints')
                 if len(test_accuracies) == 0 or max(test_accuracies) <= test_acc:
                     torch.save(client_pool.server['glob_dict'], self.args.model_path)
-                test_losses.append(test_loss)
-                test_accuracies.append(test_acc)
+
                 logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                                .format(i, test_accuracies[-1], test_losses[-1]))
-                tb_logger.add_scalar('test50/top1_acc', test_accuracies[-1], i)
-                tb_logger.add_scalar('test50/loss', test_losses[-1], i)
-
+                for k in info:
+                    tb_logger.add_scalar('test/{}'.format(k), info[k], i)
                 # if you want to test all the training set, use following code.
                 # BE AWARE: the
                 # test_acc, test_loss = server.test(model=client_pool[0].model,
@@ -149,7 +155,8 @@ class Simulator:
                 # logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                 #                .format(i, test_acc, test_loss))
 
-        test_acc, test_loss = server.test(model=client_pool[0].model, train_epoch=30)
+        info = server.test(model=client_pool[0].model, train_epoch=30)
+        test_acc, test_loss = info['acc'], info['loss']
         logger.logging('Final evaluation, test_acc: {:.4f}, test_loss: {:.4f}'
                        .format(test_acc, test_loss))
         np.savez('results', np.array(train_accuracies),

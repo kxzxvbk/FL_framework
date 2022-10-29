@@ -36,7 +36,7 @@ class Server:
         criterion = nn.CrossEntropyLoss()
         model.init_eval()
         model.to(self.device)
-        optimizer = torch.optim.SGD(model.parameters(), 0.03,
+        optimizer = torch.optim.SGD(model.parameters(), 0.01,
                                     momentum=0.9,
                                     weight_decay=1e-4,)
         # optimizer = torch.optim.Adam(model.parameters(), 0.03, weight_decay=1e-4)
@@ -53,7 +53,7 @@ class Server:
         for _ in range(train_epoch):
             for _, (batch_x, batch_y) in enumerate(train_loader):
                 batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
-                o = model.forward_eval(batch_x)
+                o, _ = model.forward_eval(batch_x)
                 lss = criterion(o, batch_y)
                 optimizer.zero_grad()
                 lss.backward()
@@ -73,9 +73,23 @@ class Server:
                 test_dataset, batch_size=256, shuffle=True,
                 num_workers=0, pin_memory=True, drop_last=False)
 
+            tot_info = {}
+            cnt = 0
+
             for _, (batch_x, batch_y) in enumerate(test_loader):
                 batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
-                o = model.forward_eval(batch_x)
+                o, info = model.forward_eval(batch_x)
+
+                cnt += 1
+                for k in info:
+                    if k not in tot_info:
+                        tot_info[k] = info[k]
+                    else:
+                        if 'max' in k:
+                            tot_info[k] = max(info[k], tot_info[k])
+                        else:
+                            tot_info[k] += info[k]
+
                 tot_loss += criterion(o, batch_y).item()
                 y_pred = o.data.max(1, keepdim=True)[1]
                 correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
@@ -85,4 +99,9 @@ class Server:
             avg_loss = tot_loss / total
 
             print('linear protocol: ' + str(avg_acc) + '      ' + str(avg_loss))
-        return avg_acc, avg_loss
+        for k in tot_info:
+            if 'max' not in k:
+                tot_info[k] /= cnt
+        tot_info['acc'] = avg_acc
+        tot_info['loss'] = avg_loss
+        return avg_acc, tot_info

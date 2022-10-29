@@ -38,7 +38,7 @@ def args_parser():
 
     # logging and evaluation
     parser.add_argument('--test_freq', type=int, default=5, help="rounds of testing")
-    parser.add_argument('--logging_path', type=str, default='./logging/moco_C10_global_iid_kdim64', help='logging path')
+    parser.add_argument('--logging_path', type=str, default='./logging/test_me', help='logging path')
     parser.add_argument('--model_path', type=str, default='./model_checkpoints/moco_model.ckpt')
     args = parser.parse_args()
     return args

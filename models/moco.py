@@ -139,14 +139,26 @@ class MoCo(nn.Module):
         return x_gather[idx_this]
 
     def init_eval(self):
-        self.encoder_qe = copy.deepcopy(self.encoder_q)
-        for param in self.encoder_qe.parameters():
+        self.encoder_qb = copy.deepcopy(self.encoder_q)
+        self.encoder_qb.fc = nn.Identity()
+        for param in self.encoder_qb.parameters():
             param.requires_grad = False
-        self.encoder_qe.fc = nn.Linear(512, 10)
-        self.encoder_qe.eval()
+        self.encoder_qb.eval()
+
+        self.head = nn.Linear(512, 10)
 
     def forward_eval(self, x):
-        return self.encoder_qe(x)
+        info = {}
+        feature = self.encoder_qe(x)
+        info['before_mean'] = torch.mean(torch.abs(feature)).item()
+        info['before_std'] = torch.std(feature).item()
+        info['before_max'] = torch.max(feature).item()
+        feature = nn.functional.normalize(feature, dim=1)
+        info['after_mean'] = torch.mean(torch.abs(feature)).item()
+        info['after_std'] = torch.std(feature).item()
+        info['after_max'] = torch.max(feature).item()
+        out = self.head(feature)
+        return out, info
 
     def forward(self, im_q, im_k):
         """
