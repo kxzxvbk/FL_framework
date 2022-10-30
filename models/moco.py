@@ -3,8 +3,8 @@ import torch
 import torch.nn as nn
 import copy
 
-
 GLOBAL_QUEUE_SIZE = 65280
+
 
 class MoCo(nn.Module):
     """
@@ -12,6 +12,7 @@ class MoCo(nn.Module):
     https://arxiv.org/abs/1911.05722
     """
     global_queue = nn.functional.normalize(torch.randn(128, GLOBAL_QUEUE_SIZE), dim=0)
+
     def __init__(self, base_encoder=CifarRes, dim=128, K=65536, m=0.999, T=0.07, mlp=True,
                  use_global_queue=False, client_id=-1):
         """
@@ -149,7 +150,7 @@ class MoCo(nn.Module):
 
     def forward_eval(self, x):
         info = {}
-        feature = self.encoder_qe(x)
+        feature = self.encoder_qb(x)
         info['before_mean'] = torch.mean(torch.abs(feature)).item()
         info['before_std'] = torch.std(feature).item()
         info['before_max'] = torch.max(feature).item()
@@ -219,11 +220,8 @@ def concat_all_gather(tensor):
     *** Warning ***: torch.distributed.all_gather has no gradient.
     """
     tensors_gather = [torch.ones_like(tensor)
-        for _ in range(torch.distributed.get_world_size())]
+                      for _ in range(torch.distributed.get_world_size())]
     torch.distributed.all_gather(tensors_gather, tensor, async_op=False)
 
     output = torch.cat(tensors_gather, dim=0)
     return output
-
-
-

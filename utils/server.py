@@ -104,4 +104,4 @@ class Server:
                 tot_info[k] /= cnt
         tot_info['acc'] = avg_acc
         tot_info['loss'] = avg_loss
-        return avg_acc, tot_info
+        return tot_info
