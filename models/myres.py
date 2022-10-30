@@ -57,6 +57,14 @@ class CifarRes(nn.Module):
         )
         self.fc = nn.Linear(512, num_classes)
 
+    def compute_feature(self, x):
+        y = self.pre(x)
+        y = self.res1(y)
+        y = self.conv1(y)
+        y = self.res2(y)
+        y = self.head(y)
+        return y
+
     def forward(self, x):
         y = self.pre(x)
         y = self.res1(y)

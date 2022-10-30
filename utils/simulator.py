@@ -45,6 +45,7 @@ class Simulator:
         logger.logging('All clients initialized.')
         logger.logging('Parameter number in each model: {:.2f}M'
                        .format(get_params_number(client_pool[0].model) / 1e6))
+
         # global initialization
         if self.args.fed_dict == 'all':
             glob_dict = client_pool[0].model.state_dict()
@@ -74,17 +75,22 @@ class Simulator:
 
         # training loop
         for i in range(self.args.start_round, self.args.glob_eps):
+            # A communication begins.
             train_acc = 0
             train_loss = 0
             total_client = 0
             print('Starting round: ' + str(i))
 
+            # Random sample participated clients in each communication round.
             participated_clients = np.array(range(self.args.client_num))
             participated_clients = sorted(list(np.random.choice(participated_clients,
                                                                 int(self.args.client_sample_rate *
                                                                     participated_clients.shape[0]), replace=False)))
+
+            # Adjust learning rate.
             cur_lr = self.args.lr * (self.args.decay_factor ** i)
             for j in tqdm.tqdm(participated_clients):
+                # Local training in each client.
                 total_client += 1
                 client = client_pool[j]
                 acc, loss = client.train(
@@ -97,17 +103,22 @@ class Simulator:
 
                 train_acc += acc
                 train_loss += loss
-
                 # if you need to test locally use next codes
                 # if i % self.args.test_freq == 0:
                 #    acc, loss = client.test(loss=self.args.loss)
                 #    test_acc += acc
                 #    test_loss += loss
 
-            # aggregation and sync
+            # Log the differences for features in different clients.
+            if i % self.args.test_freq == 0:
+                bias_dict = server.check_bias(client_pool=client_pool)
+                for k in bias_dict:
+                    tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
+
+            # Aggregation and sync.
             trans_cost = client_pool.aggregate(i, )
 
-            # logging
+            # Logging
             train_accuracies.append(train_acc / total_client)
             train_losses.append(train_loss / total_client)
             trans_costs.append(trans_cost)
