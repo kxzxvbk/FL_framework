@@ -48,7 +48,7 @@ class Client:
         self.model.load_state_dict(state_dict)
 
     def train(self, lr, momentum, optimizer, loss, local_eps=1):
-        # print('Training for client:' + str(self.client_id))
+        # Local training.
         self.model.train()
         self.model.to(self.device)
 
