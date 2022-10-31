@@ -144,17 +144,16 @@ class Simulator:
                     tb_logger.add_scalar('test/{}'.format(k), info[k], i)
 
                 # test 50
-                info = server.test(model=client_pool[0].model, train_epoch=50)
-                test_acc, test_loss = info['acc'], info['loss']
-                if not os.path.exists('./model_checkpoints'):
-                    os.makedirs('./model_checkpoints')
-                if len(test_accuracies) == 0 or max(test_accuracies) <= test_acc:
-                    torch.save(client_pool.server['glob_dict'], self.args.model_path)
-
-                logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
-                               .format(i, test_accuracies[-1], test_losses[-1]))
-                for k in info:
-                    tb_logger.add_scalar('test50/{}'.format(k), info[k], i)
+                # info = server.test(model=client_pool[0].model, train_epoch=50)
+                # test_acc, test_loss = info['acc'], info['loss']
+                # if not os.path.exists('./model_checkpoints'):
+                #     os.makedirs('./model_checkpoints')
+                # if len(test_accuracies) == 0 or max(test_accuracies) <= test_acc:
+                #     torch.save(client_pool.server['glob_dict'], self.args.model_path)
+                # logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
+                #                .format(i, test_accuracies[-1], test_losses[-1]))
+                # for k in info:
+                #     tb_logger.add_scalar('test50/{}'.format(k), info[k], i)
 
         info = server.test(model=client_pool[0].model, train_epoch=30)
         test_acc, test_loss = info['acc'], info['loss']
