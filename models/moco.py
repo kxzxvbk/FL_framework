@@ -69,6 +69,11 @@ class MoCo(nn.Module):
     def get_global_queue():
         return MoCo.global_queue
 
+    def compute_feature(self, x):
+        with torch.no_grad:
+            q = self.encoder_q(x)
+        return q
+
     @torch.no_grad()
     def _momentum_update_key_encoder(self):
         """

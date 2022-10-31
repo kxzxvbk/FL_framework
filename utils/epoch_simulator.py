@@ -110,6 +110,9 @@ class Simulator:
                 info = server.test(model=client_pool[0].model, train_epoch=30)
                 for k in info:
                     tb_logger.add_scalar('test_client0/{}'.format(k), info[k], i)
+                bias_dict = server.check_bias(client_pool=client_pool)
+                for k in bias_dict:
+                    tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
 
             # aggregation and sync
             trans_cost = client_pool.aggregate(i, )
@@ -123,6 +126,7 @@ class Simulator:
             tb_logger.add_scalar('train/loss', train_loss / len(participated_clients), i)
 
             if i % self.args.test_freq == 0:
+                # test 30
                 info = server.test(model=client_pool[0].model, train_epoch=30)
                 test_acc, test_loss = info['acc'], info['loss']
                 if not os.path.exists('./model_checkpoints'):
@@ -136,6 +140,7 @@ class Simulator:
                 for k in info:
                     tb_logger.add_scalar('test/{}'.format(k), info[k], i)
 
+                # test 50
                 info = server.test(model=client_pool[0].model, train_epoch=50)
                 test_acc, test_loss = info['acc'], info['loss']
                 if not os.path.exists('./model_checkpoints'):
@@ -146,7 +151,7 @@ class Simulator:
                 logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
                                .format(i, test_accuracies[-1], test_losses[-1]))
                 for k in info:
-                    tb_logger.add_scalar('test/{}'.format(k), info[k], i)
+                    tb_logger.add_scalar('test50/{}'.format(k), info[k], i)
                 # if you want to test all the training set, use following code.
                 # BE AWARE: the
                 # test_acc, test_loss = server.test(model=client_pool[0].model,

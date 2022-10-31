@@ -27,6 +27,66 @@ class Server:
         for k in grad:
             state_dict[k] = state_dict[k] + lr * grad[k]
 
+    def check_bias(self, client_pool, save_ram=False, max_client=float('inf')):
+        # used for checking difference for features calculated on different clients.
+        # return a diction consisting: abs_value, cos_distance, l2_distance.
+        # All returned keys will be later added to tb. Only support model having: compute_feature.
+        model_list = [copy.deepcopy(client.model) for client in client_pool]
+        max_len = min(max_client, len(model_list))
+        model_list = model_list[:max_len]
+
+        # to device
+        for model in model_list:
+            model.eval()
+            if not save_ram:
+                model.to(self.device)
+
+        abs_vals = []
+        l2_dists = []
+        cos_dists = []
+
+        for _, (batch_x, batch_y) in enumerate(self.test_loader):
+            batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
+            batch_feature = []
+            for model in model_list:
+                if save_ram:
+                    model = model.to(self.device)
+                    batch_feature.append(model.compute_feature(batch_x).detach())
+                    model = model.to('cpu')
+                else:
+                    batch_feature.append(model.compute_feature(batch_x).detach())
+            abs_val = torch.cat([torch.abs(batch_feature[ii]) for ii in range(len(batch_feature))], dim=0)
+            l2_dist = torch.cat([torch.norm(batch_feature[i] - batch_feature[i + 1], dim=-1, keepdim=False)
+                                 for i in range(len(batch_feature) - 1)], dim=0)
+            batch_feature = torch.nn.functional.normalize(torch.stack(batch_feature, dim=0), dim=-1)
+            cos_dist = torch.cat([torch.diag(batch_feature[i] @ batch_feature[i+1].T)
+                                  for i in range(len(batch_feature) - 1)])
+
+            abs_vals.append(abs_val.cpu())
+            l2_dists.append(l2_dist.cpu())
+            cos_dists.append(cos_dist.cpu())
+        abs_vals = torch.cat(abs_vals, dim=0)
+        l2_dists = torch.cat(l2_dists, dim=0)
+        cos_dists = torch.cat(cos_dists, dim=0)
+
+        res_dict = {}
+        res_dict['abs_mean'] = torch.mean(abs_vals).item()
+        res_dict['abs_std'] = torch.std(abs_vals).item()
+        res_dict['abs_max'] = torch.max(abs_vals).item()
+
+        res_dict['l2_mean'] = torch.mean(l2_dists).item()
+        res_dict['l2_std'] = torch.std(l2_dists).item()
+        res_dict['l2_max'] = torch.max(l2_dists).item()
+
+        res_dict['cos_mean'] = torch.mean(cos_dists).item()
+        res_dict['cos_std'] = torch.std(cos_dists).item()
+        res_dict['cos_min'] = torch.min(cos_dists).item()
+
+        if not save_ram:
+            for model in model_list:
+                model.to('cpu')
+        return res_dict
+
     def test(self, model, test_loader=None, train_epoch=3):
         if test_loader:
             old_loader = self.test_loader

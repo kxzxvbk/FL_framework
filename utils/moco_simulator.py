@@ -106,13 +106,20 @@ class Simulator:
                 #    test_acc += acc
                 #    test_loss += loss
 
+            # test for client 0
+            if i % self.args.test_freq == 0:
+                info = server.test(model=client_pool[0].model, train_epoch=30)
+                for k in info:
+                    tb_logger.add_scalar('test_client0/{}'.format(k), info[k], i)
+
+                bias_dict = server.check_bias(client_pool=client_pool)
+                for k in bias_dict:
+                    tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
+
             # aggregation and sync
             trans_cost = client_pool.aggregate(i, )
 
             # logging
-            # train_accuracies.append(train_acc / total_client)
-            # train_losses.append(train_loss / total_client)
-            # trans_costs.append(trans_cost)
             logger.logging('epoch:{}, train_acc@1: {:.4f}, train_acc@5: {:.4f}, train_loss: {:.4f}, trans_cost: {:.4f}M'
                            .format(i, train_acc[1] / len(participated_clients),
                                    train_acc[5] / len(participated_clients),
@@ -122,6 +129,7 @@ class Simulator:
             tb_logger.add_scalar('train/loss', train_loss / len(participated_clients), i)
 
             if i % self.args.test_freq == 0:
+                # test 30
                 info = server.test(model=client_pool[0].model, train_epoch=30)
                 test_acc, test_loss = info['acc'], info['loss']
                 if not os.path.exists('./model_checkpoints'):
@@ -135,13 +143,19 @@ class Simulator:
                 for k in info:
                     tb_logger.add_scalar('test/{}'.format(k), info[k], i)
 
-                # if you want to test all the training set, use following code.
-                # BE AWARE: the
-                # test_acc, test_loss = server.test(model=client_pool[0].model,
-                #                                   loss=self.args.loss,
-                #                                   test_loader=data.DataLoader(train_set, batch_size=32, shuffle=True))
-                # logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
-                #                .format(i, test_acc, test_loss))
+                # test 50
+                info = server.test(model=client_pool[0].model, train_epoch=50)
+                test_acc, test_loss = info['acc'], info['loss']
+                if not os.path.exists('./model_checkpoints'):
+                    os.makedirs('./model_checkpoints')
+                if len(test_accuracies) == 0 or max(test_accuracies) <= test_acc:
+                    torch.save(client_pool.server['glob_dict'], self.args.model_path)
+
+                logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
+                               .format(i, test_accuracies[-1], test_losses[-1]))
+                for k in info:
+                    tb_logger.add_scalar('test50/{}'.format(k), info[k], i)
+
         info = server.test(model=client_pool[0].model, train_epoch=30)
         test_acc, test_loss = info['acc'], info['loss']
         logger.logging('Final evaluation, test_acc: {:.4f}, test_loss: {:.4f}'
