@@ -153,16 +153,21 @@ class MoCo(nn.Module):
 
         self.head = nn.Linear(512, 10)
 
-    def forward_eval(self, x):
+    def forward_eval(self, x, use_normalize=False):
         info = {}
         feature = self.encoder_qb(x)
-        info['before_mean'] = torch.mean(torch.abs(feature)).item()
-        info['before_std'] = torch.std(feature).item()
-        info['before_max'] = torch.max(feature).item()
-        feature = nn.functional.normalize(feature, dim=1)
-        info['after_mean'] = torch.mean(torch.abs(feature)).item()
-        info['after_std'] = torch.std(feature).item()
-        info['after_max'] = torch.max(feature).item()
+        if use_normalize:
+            info['before_mean'] = torch.mean(torch.abs(feature)).item()
+            info['before_std'] = torch.std(feature).item()
+            info['before_max'] = torch.max(torch.abs(feature)).item()
+            feature = nn.functional.normalize(feature, dim=1)
+            info['after_mean'] = torch.mean(torch.abs(feature)).item()
+            info['after_std'] = torch.std(feature).item()
+            info['after_max'] = torch.max(torch.abs(feature)).item()
+        else:
+            info['abs_mean'] = torch.mean(torch.abs(feature)).item()
+            info['feature_std'] = torch.std(feature).item()
+            info['abs_max'] = torch.max(torch.abs(feature)).item()
         out = self.head(feature)
         return out, info
 
