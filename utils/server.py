@@ -45,7 +45,16 @@ class Server:
         l2_dists = []
         cos_dists = []
 
-        for _, (batch_x, batch_y) in enumerate(self.test_loader):
+        augmentation = [transforms.ToTensor(), transforms.Normalize(
+            mean=[0.4913997551666284, 0.48215855929893703, 0.4465309133731618],
+            std=[0.24703225141799082, 0.24348516474564, 0.26158783926049628])]
+        test_dataset = datasets.CIFAR10(os.path.join('./data', 'CIFAR10'), train=False,
+                                        download=True, transform=transforms.Compose(augmentation))
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset, batch_size=256, shuffle=True,
+            num_workers=0, pin_memory=True, drop_last=False)
+
+        for _, (batch_x, batch_y) in enumerate(test_loader):
             batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
             batch_feature = []
             for model in model_list:
