@@ -70,7 +70,7 @@ class MoCo(nn.Module):
         return MoCo.global_queue
 
     def compute_feature(self, x):
-        with torch.no_grad:
+        with torch.no_grad():
             q = self.encoder_q(x)
         return q
 
