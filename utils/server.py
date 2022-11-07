@@ -1,4 +1,6 @@
 import copy
+from functools import reduce
+
 from utils.client import get_loss
 import torch
 from torchvision import transforms, datasets
@@ -26,6 +28,64 @@ class Server:
         state_dict = self.attrs['glob_dict']
         for k in grad:
             state_dict[k] = state_dict[k] + lr * grad[k]
+
+    def check_cent(self,  model):
+        # used for checking difference for features calculated on different clients.
+        # return a diction consisting: abs_value, cos_distance, l2_distance.
+        # All returned keys will be later added to tb. Only support model having: compute_feature.
+        model = copy.deepcopy(model).cuda()
+
+        augmentation = [transforms.ToTensor(), transforms.Normalize(
+            mean=[0.4913997551666284, 0.48215855929893703, 0.4465309133731618],
+            std=[0.24703225141799082, 0.24348516474564, 0.26158783926049628])]
+        test_dataset = datasets.CIFAR10(os.path.join('./data', 'CIFAR10'), train=False,
+                                        download=True, transform=transforms.Compose(augmentation))
+        test_loader = torch.utils.data.DataLoader(
+            test_dataset, batch_size=256, shuffle=True,
+            num_workers=0, pin_memory=True, drop_last=False)
+
+        tot_feature = []
+        tot_label = []
+
+        for _, (batch_x, batch_y) in enumerate(test_loader):
+            batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
+            tot_feature.append(torch.nn.functional.normalize(model.forward_eval(batch_x).detach(), dim=1))
+            tot_label.append(batch_y)
+
+        tot_feature = torch.cat(tot_feature, dim=0)
+        tot_label = torch.cat(tot_label, dim=0)
+
+        class_indexes = [torch.where(tot_label == y).flatten() for y in range(10)]
+        class_feature = [tot_feature[class_indexes[y]] for y in range(10)]
+
+        i_dists = []
+        o_dists = []
+        for i in range(10):
+            # mean std min max
+            this = class_feature.pop(i)  # B * C
+            other = torch.cat(class_feature, dim=0)  # B * C
+
+            inner = this @ this.T
+            outer = this @ other.T
+
+            i_dist = {'inner_mean': torch.mean(inner).item(), 'inner_std': torch.std(inner).item(),
+                      'inner_min': torch.min(inner).item(), 'inner_max': torch.max(inner).item()}
+            o_dist = {'outer_mean': torch.mean(outer).item(), 'outer_std': torch.std(outer).item(),
+                      'outer_min': torch.min(outer).item(), 'outer_max': torch.max(outer).item()}
+            i_dists.append(i_dist)
+            o_dists.append(o_dist)
+            class_feature.insert(i, this)
+
+        res_dict = {}
+        for k in i_dists[0]:
+            res_dict[k] = sum([t[k] for t in i_dists]) / len(i_dists)
+
+        for k in o_dists[0]:
+            res_dict[k] = sum([t[k] for t in o_dists]) / len(o_dists)
+
+        model.to('cpu')
+
+        return res_dict
 
     def check_bias(self, client_pool, save_ram=False, max_client=float('inf')):
         # used for checking difference for features calculated on different clients.

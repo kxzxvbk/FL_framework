@@ -106,13 +106,13 @@ class Simulator:
             train_loss /= self.args.loc_eps
 
             # test for client 0
-            if i % self.args.test_freq == 0:
-                info = server.test(model=client_pool[0].model, train_epoch=30)
-                for k in info:
-                    tb_logger.add_scalar('test_client0/{}'.format(k), info[k], i)
-                bias_dict = server.check_bias(client_pool=client_pool)
-                for k in bias_dict:
-                    tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
+            # if i % self.args.test_freq == 0:
+            #     info = server.test(model=client_pool[0].model, train_epoch=30)
+            #     for k in info:
+            #         tb_logger.add_scalar('test_client0/{}'.format(k), info[k], i)
+            #     bias_dict = server.check_bias(client_pool=client_pool)
+            #     for k in bias_dict:
+            #         tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
 
             # aggregation and sync
             trans_cost = client_pool.aggregate(i, )
@@ -139,6 +139,10 @@ class Simulator:
                                .format(i, test_accuracies[-1], test_losses[-1]))
                 for k in info:
                     tb_logger.add_scalar('test/{}'.format(k), info[k], i)
+
+                cent_dict = server.check_cent(model=client_pool[0].model)
+                for k in cent_dict:
+                    tb_logger.add_scalar('cent_check/{}'.format(k), cent_dict[k], i)
 
                 # test 50
                 # info = server.test(model=client_pool[0].model, train_epoch=50)
