@@ -145,7 +145,10 @@ class Simulator:
 
                 cent_dict = server.check_cent(model=client_pool[0].model)
                 for k in cent_dict:
-                    tb_logger.add_scalar('cent_check/{}'.format(k), cent_dict[k], i)
+                    if k != 'hist':
+                        tb_logger.add_scalar('cent_check/{}'.format(k), cent_dict[k], i)
+                    else:
+                        torch.save(cent_dict[k], './hists/iteration_{}_hist.pth.tar'.format(i))
 
                 # test 50
                 # info = server.test(model=client_pool[0].model, train_epoch=50)

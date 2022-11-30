@@ -47,8 +47,10 @@ class Server:
         tot_feature = []
         tot_label = []
 
+        model.init_eval()
+
         for _, (batch_x, batch_y) in enumerate(test_loader):
-            batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
+            batch_x, batch_y = batch_x.cuda(), batch_y.cuda()
             tot_feature.append(torch.nn.functional.normalize(model.forward_eval(batch_x).detach(), dim=1))
             tot_label.append(batch_y)
 
@@ -76,7 +78,7 @@ class Server:
             o_dists.append(o_dist)
             class_feature.insert(i, this)
 
-        res_dict = {}
+        res_dict = {'hist': torch.histc(tot_feature) / tot_feature.numel()}
         for k in i_dists[0]:
             res_dict[k] = sum([t[k] for t in i_dists]) / len(i_dists)
 
