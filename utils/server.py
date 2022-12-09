@@ -33,6 +33,7 @@ class Server:
         # used for checking difference for features calculated on different clients.
         # return a diction consisting: abs_value, cos_distance, l2_distance.
         # All returned keys will be later added to tb. Only support model having: compute_feature.
+        model.init_eval()
         model = copy.deepcopy(model).cuda()
 
         augmentation = [transforms.ToTensor(), transforms.Normalize(
@@ -47,17 +48,15 @@ class Server:
         tot_feature = []
         tot_label = []
 
-        model.init_eval()
-
         for _, (batch_x, batch_y) in enumerate(test_loader):
             batch_x, batch_y = batch_x.cuda(), batch_y.cuda()
-            tot_feature.append(torch.nn.functional.normalize(model.forward_eval(batch_x).detach(), dim=1))
+            tot_feature.append(torch.nn.functional.normalize(model.forward_eval(batch_x)[0].detach(), dim=1))
             tot_label.append(batch_y)
 
         tot_feature = torch.cat(tot_feature, dim=0)
         tot_label = torch.cat(tot_label, dim=0)
 
-        class_indexes = [torch.where(tot_label == y).flatten() for y in range(10)]
+        class_indexes = [torch.where(tot_label == y, 1, 0).flatten() for y in range(10)]
         class_feature = [tot_feature[class_indexes[y]] for y in range(10)]
 
         i_dists = []
