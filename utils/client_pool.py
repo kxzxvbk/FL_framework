@@ -24,7 +24,7 @@ class ClientPool:
 
     def aggregate(self, train_round,):
         """
-        aggregate: applying a aggregation method to update the global model
+        aggregate: applying an aggregation method to update the global model
         :return: None
         """
         if self.args.aggr_method == 'avg':
