@@ -1,10 +1,14 @@
+import sys
+
 from torchvision import datasets, transforms
 from functools import reduce
+from torch.utils.data import Dataset
 import os
+from PIL import Image
 
 
 class DatasetConstructor:
-    support_dataset = ['mnist', 'cifar10', 'fashion_mnist']
+    support_dataset = ['mnist', 'cifar10', 'fashion_mnist', 'imagenet-tiny']
 
     def __init__(self, args):
         self.dataset = args.dataset.lower()
@@ -50,6 +54,25 @@ class DatasetConstructor:
                 ])
             return datasets.FashionMNIST(path, train=train, download=True, transform=transform)
 
+        elif self.dataset == 'imagenet-tiny':
+            if train:
+                folder = 'train'
+            else:
+                folder = 'test'
+            if self.resize > 0:
+                transform = transforms.Compose([
+                    transforms.Resize(self.resize),
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.4802, 0.4481, 0.3975), (0.2770, 0.2691, 0.2821))
+                ])
+            else:
+                transform = transforms.Compose([
+                    transforms.ToTensor(),
+                    transforms.Normalize((0.4802, 0.4481, 0.3975), (0.2770, 0.2691, 0.2821))
+                ])
+            return datasets.ImageFolder(root=os.path.join(path, 'tiny-imagenet-200', folder),
+                                        transform=transform)
+
 
 def calculate_mean_std(train_dataset, test_dataset):
     if train_dataset[0][0].shape[0] == 1:
@@ -66,4 +89,3 @@ def calculate_mean_std(train_dataset, test_dataset):
             res_std.append(sample.std())
 
         return reduce(lambda x, y: x + y, res) / len(res), reduce(lambda x, y: x + y, res_std) / len(res)
-

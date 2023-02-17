@@ -110,10 +110,10 @@ class Simulator:
                 #    test_loss += loss
 
             # Log the differences for features in different clients.
-            if i % self.args.test_freq == 0:
-                bias_dict = server.check_bias(client_pool=client_pool)
-                for k in bias_dict:
-                    tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
+            # if i % self.args.test_freq == 0:
+            #     bias_dict = server.check_bias(client_pool=client_pool)
+            #     for k in bias_dict:
+            #         tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
 
             # Aggregation and sync.
             trans_cost = client_pool.aggregate(i, )
