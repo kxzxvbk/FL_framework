@@ -16,8 +16,8 @@ def args_parser():
     parser.add_argument('--alpha', type=float, default=0.2, help="alpha for dirichlet distribution")
 
     # training arguments
-    parser.add_argument('--batch_size', type=int, default=64, help="batch_size")
-    parser.add_argument('--lr', type=float, default=0.015, help="learning rate")
+    parser.add_argument('--batch_size', type=int, default=128, help="batch_size")
+    parser.add_argument('--lr', type=float, default=0.03, help="learning rate")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
     parser.add_argument('--resume', type=bool, default=False, help="whether to resume")
     parser.add_argument('--start_round', type=int, default=0, help='round to start with')
@@ -26,7 +26,7 @@ def args_parser():
     parser.add_argument('--optimizer', type=str, default='sgd', help='optimizer type')
 
     # model
-    parser.add_argument('--model', type=str, default='resnet18', help='model name')
+    parser.add_argument('--model', type=str, default='cifarres', help='model name')
     parser.add_argument('--input_channel', type=int, default=3, help='input channel')
     parser.add_argument('--class_number', type=int, default=200, help='class channel')
 
@@ -37,7 +37,7 @@ def args_parser():
 
     # logging and evaluation
     parser.add_argument('--test_freq', type=int, default=5, help="rounds of testing")
-    parser.add_argument('--logging_path', type=str, default='./logging/imagenet_tiny_resnet18_avg_iid', help='logging path')
+    parser.add_argument('--logging_path', type=str, default='./logging/imagenet_tiny_cifarres_avg_iid', help='logging path')
 
     args = parser.parse_args()
     return args
