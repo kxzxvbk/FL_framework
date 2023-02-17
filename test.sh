@@ -1,4 +1,5 @@
 python run.py --logging_path ./logging/imagenet_tiny_resnet9_avg_iid --model resnet9
+python run.py --logging_path ./logging/imagenet_tiny_resnet18_avg_iid --model resnet18
 python run.py --logging_path ./logging/imagenet_tiny_resnet34_avg_iid --model resnet34
 python run.py --logging_path ./logging/imagenet_tiny_resnet50_avg_iid --model resnet50
 

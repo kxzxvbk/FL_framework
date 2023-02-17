@@ -65,7 +65,7 @@ class ModelConstructor:
         elif self.args.model == 'resnet34ada':
             return resnet.resnet34(num_classes=self.args.class_number)
         elif self.args.model == 'cifarres':
-            return CifarRes()
+            return CifarRes(num_classes=self.args.class_number)
 
         elif self.args.model == 'transformer':
             ntokens = 28783  # size of vocabulary
