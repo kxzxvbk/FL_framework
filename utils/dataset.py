@@ -62,13 +62,11 @@ class DatasetConstructor:
             if self.resize > 0:
                 transform = transforms.Compose([
                     transforms.Resize(self.resize),
-                    transforms.ToTensor(),
-                    transforms.Normalize((0.4802, 0.4481, 0.3975), (0.2770, 0.2691, 0.2821))
+                    transforms.ToTensor()
                 ])
             else:
                 transform = transforms.Compose([
                     transforms.ToTensor(),
-                    transforms.Normalize((0.4802, 0.4481, 0.3975), (0.2770, 0.2691, 0.2821))
                 ])
             return datasets.ImageFolder(root=os.path.join(path, 'tiny-imagenet-200', folder),
                                         transform=transform)

@@ -109,12 +109,18 @@ class Simulator:
                 #    test_acc += acc
                 #    test_loss += loss
 
-            # Log the differences for features in different clients.
-            # if i % self.args.test_freq == 0:
-            #     bias_dict = server.check_bias(client_pool=client_pool)
-            #     for k in bias_dict:
-            #         tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
-
+            # Test before aggregation.
+            if i % self.args.test_freq == 0:
+                res_dict = server.test(model=client_pool[0].model, loss=self.args.loss)
+                test_loss, test_acc = res_dict['loss'], res_dict['acc']
+                logger.logging('epoch:{}, before_test_acc: {:.4f}, before_test_loss: {:.4f}'
+                               .format(i, test_acc, test_loss))
+                for k in res_dict:
+                    tb_logger.add_scalar('before_test/{}'.format(k), res_dict[k], i)
+                # Log the differences for features in different clients.
+                # bias_dict = server.check_bias(client_pool=client_pool)
+                # for k in bias_dict:
+                #     tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
             # Aggregation and sync.
             trans_cost = client_pool.aggregate(i, )
 
