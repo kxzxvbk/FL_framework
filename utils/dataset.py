@@ -63,7 +63,7 @@ class DatasetConstructor:
             new_size = 64 if self.resize < 0 else self.resize
             if train:
                 transform.append(transforms.RandomHorizontalFlip())
-                transform.append(transforms.RandomResizedCrop(new_size))
+                transform.append(transforms.RandomResizedCrop(new_size, scale=(0.33, 1)))
             else:
                 transform.append(transforms.Resize(new_size))
             transform.append(transforms.ToTensor())
