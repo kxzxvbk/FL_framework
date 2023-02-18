@@ -33,10 +33,10 @@ def args_parser():
     # dataset
     parser.add_argument('--dataset', type=str, default='imagenet-tiny', help="name of dataset")
     parser.add_argument('--data_path', type=str, default='./data', help='data path')
-    parser.add_argument('--resize', type=int, default=-1, help='resize the input image, -1 means no resizing')
+    parser.add_argument('--resize', type=int, default=128, help='resize the input image, -1 means no resizing')
 
     # logging and evaluation
-    parser.add_argument('--test_freq', type=int, default=5, help="rounds of testing")
+    parser.add_argument('--test_freq', type=int, default=3, help="rounds of testing")
     parser.add_argument('--logging_path', type=str, default='./logging/imagenet_tiny_cifarres_avg_iid', help='logging path')
 
     args = parser.parse_args()
