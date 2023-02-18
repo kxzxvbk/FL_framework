@@ -58,16 +58,16 @@ class DatasetConstructor:
             if train:
                 folder = 'train'
             else:
-                folder = 'test'
-            if self.resize > 0:
-                transform = transforms.Compose([
-                    transforms.Resize(self.resize),
-                    transforms.ToTensor()
-                ])
+                folder = 'val'
+            transform = []
+            new_size = 64 if self.resize < 0 else self.resize
+            if train:
+                transform.append(transforms.RandomHorizontalFlip())
+                transform.append(transforms.RandomResizedCrop(new_size))
             else:
-                transform = transforms.Compose([
-                    transforms.ToTensor(),
-                ])
+                transform.append(transforms.Resize(new_size))
+            transform.append(transforms.ToTensor())
+            transform = transforms.Compose(transform)
             return datasets.ImageFolder(root=os.path.join(path, 'tiny-imagenet-200', folder),
                                         transform=transform)
 
