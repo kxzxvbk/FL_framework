@@ -122,7 +122,7 @@ class Simulator:
                 # for k in bias_dict:
                 #     tb_logger.add_scalar('bias_check/{}'.format(k), bias_dict[k], i)
             # Aggregation and sync.
-            trans_cost = client_pool.aggregate(i, )
+            trans_cost = client_pool.aggregate(i, tb_logger=tb_logger)
 
             # Logging
             train_accuracies.append(train_acc / total_client)

@@ -5,8 +5,8 @@ import argparse
 def args_parser():
     parser = argparse.ArgumentParser()
     # federated arguments
-    parser.add_argument('--loc_eps', type=int, default=3, help="rounds of training")
-    parser.add_argument('--glob_eps', type=int, default=40, help="global training round")
+    parser.add_argument('--loc_eps', type=int, default=8, help="rounds of training")
+    parser.add_argument('--glob_eps', type=int, default=30, help="global training round")
     parser.add_argument('--client_num', type=int, default=30, help="number of client")
     parser.add_argument('--client_sample_rate', type=float, default=1, help="client_sample_rate")
     parser.add_argument('--decay_factor', type=float, default=1, help="decay factor of learning rate")
@@ -17,7 +17,7 @@ def args_parser():
 
     # training arguments
     parser.add_argument('--batch_size', type=int, default=64, help="batch_size")
-    parser.add_argument('--lr', type=float, default=0.015, help="learning rate")
+    parser.add_argument('--lr', type=float, default=0.03, help="learning rate")
     parser.add_argument('--momentum', type=float, default=0.9, help="SGD momentum")
     parser.add_argument('--resume', type=bool, default=False, help="whether to resume")
     parser.add_argument('--start_round', type=int, default=0, help='round to start with')
@@ -33,7 +33,7 @@ def args_parser():
     # dataset
     parser.add_argument('--dataset', type=str, default='imagenet-tiny', help="name of dataset")
     parser.add_argument('--data_path', type=str, default='./data', help='data path')
-    parser.add_argument('--resize', type=int, default=128, help='resize the input image, -1 means no resizing')
+    parser.add_argument('--resize', type=int, default=-1, help='resize the input image, -1 means no resizing')
 
     # logging and evaluation
     parser.add_argument('--test_freq', type=int, default=3, help="rounds of testing")

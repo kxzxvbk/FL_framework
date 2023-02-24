@@ -22,13 +22,13 @@ class ClientPool:
         """
         self.clients.append(item)
 
-    def aggregate(self, train_round,):
+    def aggregate(self, train_round, tb_logger):
         """
         aggregate: applying an aggregation method to update the global model
         :return: None
         """
         if self.args.aggr_method == 'avg':
-            trans_cost = fed_avg(self.clients, self.server)
+            trans_cost = fed_avg(self.clients, self.server, tb_logger)
             self.sync()
         else:
             print('Unrecognized compression method: ' + self.method)
