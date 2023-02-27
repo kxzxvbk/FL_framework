@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 
@@ -7,7 +8,7 @@ class CNNMean(nn.Module):
         self.channels = [120, 120, 120, 120]
         self.cnn_pre = BasicConvBlock(3, self.channels[0], 7, 2)
         self.group1 = nn.Sequential(
-            BasicConvBlock(self.channels[0], self.channels[1], 3, 2),
+            BasicConvBlock(self.channels[0], self.channels[1], 3, 1),
             BasicConvBlock(self.channels[1], self.channels[1], 3, 1)
         )
         self.group2 = nn.Sequential(
@@ -15,7 +16,7 @@ class CNNMean(nn.Module):
             BasicConvBlock(self.channels[2], self.channels[2], 3, 1)
         )
         self.group3 = nn.Sequential(
-            BasicConvBlock(self.channels[2], self.channels[3], 3, 2),
+            BasicConvBlock(self.channels[2], self.channels[3], 3, 1),
             BasicConvBlock(self.channels[3], self.channels[3], 3, 1)
         )
         self.pool = nn.AdaptiveAvgPool2d((1, 1))
@@ -36,7 +37,7 @@ class CNNNormal(nn.Module):
         self.channels = [32, 64, 128, 256]
         self.cnn_pre = BasicConvBlock(3, self.channels[0], 7, 2)
         self.group1 = nn.Sequential(
-            BasicConvBlock(self.channels[0], self.channels[1], 3, 2),
+            BasicConvBlock(self.channels[0], self.channels[1], 3, 1),
             BasicConvBlock(self.channels[1], self.channels[1], 3, 1)
         )
         self.group2 = nn.Sequential(
@@ -44,7 +45,7 @@ class CNNNormal(nn.Module):
             BasicConvBlock(self.channels[2], self.channels[2], 3, 1)
         )
         self.group3 = nn.Sequential(
-            BasicConvBlock(self.channels[2], self.channels[3], 3, 2),
+            BasicConvBlock(self.channels[2], self.channels[3], 3, 1),
             BasicConvBlock(self.channels[3], self.channels[3], 3, 1)
         )
         self.pool = nn.AdaptiveAvgPool2d((1, 1))
@@ -55,7 +56,7 @@ class CNNNormal(nn.Module):
         x2 = self.group1(x1)
         x3 = self.group2(x2)
         x4 = self.group3(x3)
-        o = self.fc(self.pool(x4))
+        o = self.fc(self.pool(x4).flatten(1))
         return o
 
 
@@ -65,7 +66,7 @@ class CNNAntiNormal(nn.Module):
         self.channels = [256, 128, 64, 32]
         self.cnn_pre = BasicConvBlock(3, self.channels[0], 7, 2)
         self.group1 = nn.Sequential(
-            BasicConvBlock(self.channels[0], self.channels[1], 3, 2),
+            BasicConvBlock(self.channels[0], self.channels[1], 3, 1),
             BasicConvBlock(self.channels[1], self.channels[1], 3, 1)
         )
         self.group2 = nn.Sequential(
@@ -73,7 +74,7 @@ class CNNAntiNormal(nn.Module):
             BasicConvBlock(self.channels[2], self.channels[2], 3, 1)
         )
         self.group3 = nn.Sequential(
-            BasicConvBlock(self.channels[2], self.channels[3], 3, 2),
+            BasicConvBlock(self.channels[2], self.channels[3], 3, 1),
             BasicConvBlock(self.channels[3], self.channels[3], 3, 1)
         )
         self.pool = nn.AdaptiveAvgPool2d((1, 1))
@@ -94,7 +95,7 @@ class CNNNoBN(nn.Module):
         self.channels = [256, 128, 64, 32]
         self.cnn_pre = BasicConvBlock(3, self.channels[0], 7, 2, use_bn=False)
         self.group1 = nn.Sequential(
-            BasicConvBlock(self.channels[0], self.channels[1], 3, 2, use_bn=False),
+            BasicConvBlock(self.channels[0], self.channels[1], 3, 1, use_bn=False),
             BasicConvBlock(self.channels[1], self.channels[1], 3, 1, use_bn=False)
         )
         self.group2 = nn.Sequential(
@@ -102,7 +103,7 @@ class CNNNoBN(nn.Module):
             BasicConvBlock(self.channels[2], self.channels[2], 3, 1, use_bn=False)
         )
         self.group3 = nn.Sequential(
-            BasicConvBlock(self.channels[2], self.channels[3], 3, 2, use_bn=False),
+            BasicConvBlock(self.channels[2], self.channels[3], 3, 1, use_bn=False),
             BasicConvBlock(self.channels[3], self.channels[3], 3, 1, use_bn=False)
         )
         self.pool = nn.AdaptiveAvgPool2d((1, 1))
@@ -129,5 +130,5 @@ class BasicConvBlock(nn.Module):
             self.bn = nn.Identity()
         self.activation = nn.ReLU(inplace=True)
 
-    def foward(self, x):
+    def forward(self, x):
         return self.activation(self.bn(self.conv(x)))
