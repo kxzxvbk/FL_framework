@@ -5,6 +5,7 @@ from torch import nn, Tensor
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 import models.resnet as resnet
 from models.myres import CifarRes
+from models.testnet_cnn import *
 
 
 class ModelConstructor:
@@ -76,6 +77,15 @@ class ModelConstructor:
             dropout = 0.2  # dropout probability
             model = TransformerModel(ntokens, emsize, nhead, d_hid, nlayers, dropout)
             return model
+        # For test CNNs.
+        elif self.args.model == 'testcnn_normal':
+            CNNNormal(class_number=self.args.class_number)
+        elif self.args.model == 'testcnn_mean':
+            CNNMean(class_number=self.args.class_number)
+        elif self.args.model == 'testcnn_anti':
+            CNNAntiNormal(class_number=self.args.class_number)
+        elif self.args.model == 'testcnn_nobn':
+            CNNNoBN(class_number=self.args.class_number)
         else:
             print('Unrecognized model name: ' + self.args.model)
 
