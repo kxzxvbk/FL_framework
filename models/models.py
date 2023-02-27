@@ -79,13 +79,13 @@ class ModelConstructor:
             return model
         # For test CNNs.
         elif self.args.model == 'testcnn_normal':
-            CNNNormal(class_number=self.args.class_number)
+            return CNNNormal(class_number=self.args.class_number)
         elif self.args.model == 'testcnn_mean':
-            CNNMean(class_number=self.args.class_number)
+            return CNNMean(class_number=self.args.class_number)
         elif self.args.model == 'testcnn_anti':
-            CNNAntiNormal(class_number=self.args.class_number)
+            return CNNAntiNormal(class_number=self.args.class_number)
         elif self.args.model == 'testcnn_nobn':
-            CNNNoBN(class_number=self.args.class_number)
+            return CNNNoBN(class_number=self.args.class_number)
         else:
             print('Unrecognized model name: ' + self.args.model)
 

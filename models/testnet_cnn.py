@@ -120,7 +120,9 @@ class CNNNoBN(nn.Module):
 class BasicConvBlock(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride, use_bn=True):
         super(BasicConvBlock, self).__init__()
-        self.conv = nn.Conv2d(in_channels, out_channels, kernel_size, stride, bias=not use_bn)
+        use_bias = not use_bn
+        self.conv = nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size, stride=stride,
+                              bias=use_bias)
         if use_bn:
             self.bn = nn.BatchNorm2d(out_channels)
         else:
