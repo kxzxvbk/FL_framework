@@ -27,7 +27,7 @@ class CNNMean(nn.Module):
         x2 = self.group1(x1)
         x3 = self.group2(x2)
         x4 = self.group3(x3)
-        o = self.fc(self.pool(x4))
+        o = self.fc(self.pool(x4).flatten(1))
         return o
 
 
@@ -85,7 +85,7 @@ class CNNAntiNormal(nn.Module):
         x2 = self.group1(x1)
         x3 = self.group2(x2)
         x4 = self.group3(x3)
-        o = self.fc(self.pool(x4))
+        o = self.fc(self.pool(x4).flatten(1))
         return o
 
 
@@ -114,7 +114,7 @@ class CNNNoBN(nn.Module):
         x2 = self.group1(x1)
         x3 = self.group2(x2)
         x4 = self.group3(x3)
-        o = self.fc(self.pool(x4))
+        o = self.fc(self.pool(x4).flatten(1))
         return o
 
 
