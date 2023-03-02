@@ -6,6 +6,7 @@ from torch.nn import TransformerEncoder, TransformerEncoderLayer
 import models.resnet as resnet
 from models.myres import CifarRes
 from models.testnet_cnn import *
+from models.testnet_resnet import *
 
 
 class ModelConstructor:
@@ -86,6 +87,15 @@ class ModelConstructor:
             return CNNAntiNormal(class_number=self.args.class_number)
         elif self.args.model == 'testcnn_nobn':
             return CNNNoBN(class_number=self.args.class_number)
+        # For test ResNets.
+        elif self.args.model == 'testres_normal':
+            return ResNormal(class_number=self.args.class_number)
+        elif self.args.model == 'testres_mean':
+            return ResMean(class_number=self.args.class_number)
+        elif self.args.model == 'testres_anti':
+            return ResAntiNormal(class_number=self.args.class_number)
+        elif self.args.model == 'testres_nobn':
+            return ResNoBN(class_number=self.args.class_number)
         else:
             print('Unrecognized model name: ' + self.args.model)
 
