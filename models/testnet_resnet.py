@@ -14,7 +14,8 @@ class ResBlock(nn.Module):
             self.downsample = nn.Identity()
         self.conv23 = nn.Sequential(
             BasicConvBlock(out_channels, out_channels, 3, 1, use_bn=use_bn),
-            BasicConvBlock(out_channels, out_channels, 3, 1, use_bn=use_bn)
+            BasicConvBlock(out_channels, out_channels, 3, 1, use_bn=use_bn),
+            BasicConvBlock(out_channels, out_channels, 3, 1, use_bn=use_bn),
         )
 
     def forward(self, x):
