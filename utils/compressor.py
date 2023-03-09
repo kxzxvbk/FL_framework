@@ -34,3 +34,4 @@ def check_space_avg(sds, key, tb_logger):
     global_w = reduce(lambda x, y: x + y, [s for s in sds]) / len(sds)
     tot_w = torch.stack([s for s in sds], dim=0)
     tb_logger.add_histogram('div_' + key, tot_w - global_w, cnt)
+    tb_logger.add_scalar('div/' + key, torch.std(tot_w - global_w).item(), cnt)
