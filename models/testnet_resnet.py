@@ -19,7 +19,6 @@ class ResBlock(nn.Module):
         )
 
     def forward(self, x):
-        print(x.shape)
         x1 = self.conv1(x)
         x2 = self.conv23(x1) + x1
         return x2
@@ -88,7 +87,7 @@ class ResAntiNormal(nn.Module):
 class ResNoBN(nn.Module):
     def __init__(self, class_number=10):
         super(ResNoBN, self).__init__()
-        self.channels = [256, 128, 64, 32]
+        self.channels = [32, 64, 128, 256]
         self.cnn_pre = BasicConvBlock(3, self.channels[0], 7, 2, use_bn=False, padding=3)
         self.cnn_blocks = nn.Sequential(
             ResBlock(self.channels[0], self.channels[1], use_bn=False),

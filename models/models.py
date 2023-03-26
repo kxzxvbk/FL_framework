@@ -1,12 +1,12 @@
 import math
 import torchvision
-import torch
 from torch import nn, Tensor
 from torch.nn import TransformerEncoder, TransformerEncoderLayer
 import models.resnet as resnet
 from models.myres import CifarRes
 from models.testnet_cnn import *
 from models.testnet_resnet import *
+from vit_pytorch import ViT
 
 
 class ModelConstructor:
@@ -55,6 +55,8 @@ class ModelConstructor:
             return torchvision.models.resnet50(num_classes=self.args.class_number)
         elif self.args.model == 'resnet34':
             return torchvision.models.resnet34(num_classes=self.args.class_number)
+        elif self.args.model == 'resnet101':
+            return torchvision.models.resnet101(num_classes=self.args.class_number)
 
         # resnet ada
         elif self.args.model == 'resnet18ada':
@@ -68,7 +70,6 @@ class ModelConstructor:
             return resnet.resnet34(num_classes=self.args.class_number)
         elif self.args.model == 'cifarres':
             return CifarRes(num_classes=self.args.class_number)
-
         elif self.args.model == 'transformer':
             ntokens = 28783  # size of vocabulary
             emsize = 200  # embedding dimension
@@ -96,6 +97,18 @@ class ModelConstructor:
             return ResAntiNormal(class_number=self.args.class_number)
         elif self.args.model == 'testres_nobn':
             return ResNoBN(class_number=self.args.class_number)
+
+        # Vision Transformer
+        elif self.args.model == 'vit':
+            return ViT(
+                image_size=64,
+                patch_size=4,
+                num_classes=self.args.class_number,
+                dim=1024,
+                depth=6,
+                heads=6,
+                mlp_dim=2048
+            )
         else:
             print('Unrecognized model name: ' + self.args.model)
 
