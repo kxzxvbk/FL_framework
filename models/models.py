@@ -7,6 +7,7 @@ from models.myres import CifarRes
 from models.testnet_cnn import *
 from models.testnet_resnet import *
 from vit_pytorch import ViT
+import torch
 
 
 class ModelConstructor:
@@ -19,6 +20,18 @@ class ModelConstructor:
         self.args = args
 
     def get_model(self):
+        if torch.__version__[0] == '2':
+            print('Using PyTorch >= 2.0, compiling the model ...')
+            ret = torch.compile(self._get_model())
+            print('Compiling finished.')
+            return ret
+        elif torch.__version__[0] == '1':
+            print('Using PyTorch < 2.0, skip compiling the model')
+            return self._get_model()
+        else:
+            raise ValueError('Not supported torch version: ' + torch.__version__)
+
+    def _get_model(self):
         if self.args.model == 'cnn':
             return CNNModel(class_number=self.args.class_number, input_channel=self.args.input_channel)
         elif self.args.model == 'mlp':
