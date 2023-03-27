@@ -23,6 +23,7 @@ class ModelConstructor:
     def get_model(self):
         if torch.__version__[0] == '2':
             print('Using PyTorch >= 2.0, compiling the model ...')
+            torch.set_float32_matmul_precision('high')
             ret = torch.compile(self._get_model())
             print('Compiling finished.')
             return ret
@@ -118,10 +119,10 @@ class ModelConstructor:
                 image_size=64,
                 patch_size=4,
                 num_classes=self.args.class_number,
-                dim=1024,
+                dim=512,
                 depth=6,
                 heads=6,
-                mlp_dim=2048
+                mlp_dim=1024
             )
         else:
             print('Unrecognized model name: ' + self.args.model)
