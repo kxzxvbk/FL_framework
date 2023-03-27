@@ -60,7 +60,7 @@ class Simulator:
         if self.args.resume:
             glob_dict = torch.load('./model_checkpoints/model.ckpt')
 
-        server = Server(self.args.device, data.DataLoader(test_set, batch_size=32, shuffle=True))
+        server = Server(self.args.device, data.DataLoader(test_set, batch_size=self.args.batch_size, shuffle=True))
         server.add_attr(name='glob_dict', item=glob_dict)
         client_pool.server = server
 

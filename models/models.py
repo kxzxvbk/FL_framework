@@ -8,6 +8,7 @@ from models.testnet_cnn import *
 from models.testnet_resnet import *
 from vit_pytorch import ViT
 import torch
+import copy
 
 
 class ModelConstructor:
