@@ -47,12 +47,12 @@ class MoCo(nn.Module):
 
         # create the queue
         if not use_global_queue:
-            self.register_buffer("queue", torch.randn(dim, K))
+            self.queue = torch.randn(dim, K)
             self.queue = nn.functional.normalize(self.queue, dim=0)
         else:
             self.base_ptr = GLOBAL_QUEUE_SIZE // 10 * client_id
 
-        self.register_buffer("queue_ptr", torch.zeros(1, dtype=torch.long))
+        self.queue_ptr = torch.zeros(1, dtype=torch.long)
         if use_global_queue:
             self.queue_ptr[0] = self.base_ptr
 
