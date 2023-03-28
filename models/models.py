@@ -8,7 +8,6 @@ from models.testnet_cnn import *
 from models.testnet_resnet import *
 from vit_pytorch import ViT
 import torch
-import copy
 
 
 class ModelConstructor:
@@ -60,29 +59,18 @@ class ModelConstructor:
                 nn.Linear(6400, 4096), nn.ReLU(), nn.Dropout(p=0.5),
                 nn.Linear(4096, 4096), nn.ReLU(), nn.Dropout(p=0.5),
                 nn.Linear(4096, 10))
-        elif self.args.model == 'resnet18':
-            net = torchvision.models.resnet18(self.args.class_number)
-            return net
         elif self.args.model == 'resnet9':
-            return torchvision.models.ResNet(torchvision.models.resnet.BasicBlock,
-                                             num_classes=self.args.class_number, layers=[1, 1, 1, 1])
+            return resnet.ResNet(torchvision.models.resnet.BasicBlock,
+                                 num_classes=self.args.class_number, layers=[1, 1, 1, 1])
+        elif self.args.model == 'resnet18':
+            return resnet.resnet18(self.args.class_number)
         elif self.args.model == 'resnet50':
-            return torchvision.models.resnet50(num_classes=self.args.class_number)
+            return resnet.resnet50(num_classes=self.args.class_number)
         elif self.args.model == 'resnet34':
-            return torchvision.models.resnet34(num_classes=self.args.class_number)
-        elif self.args.model == 'resnet101':
-            return torchvision.models.resnet101(num_classes=self.args.class_number)
-
-        # resnet ada
-        elif self.args.model == 'resnet18ada':
-            net = resnet.resnet18(num_classes=10)
-            return net
-        elif self.args.model == 'resnet9ada':
-            return resnet.ResNet(torchvision.models.resnet.BasicBlock, num_classes=10, layers=[1, 1, 1, 1])
-        elif self.args.model == 'resnet50ada':
-            return resnet.resnet50()
-        elif self.args.model == 'resnet34ada':
             return resnet.resnet34(num_classes=self.args.class_number)
+        elif self.args.model == 'resnet101':
+            return resnet.resnet101(num_classes=self.args.class_number)
+
         elif self.args.model == 'cifarres':
             return CifarRes(num_classes=self.args.class_number)
         elif self.args.model == 'transformer':
@@ -136,6 +124,7 @@ class CNNModel(nn.Module):
         self.conv3 = nn.Conv2d(20, 20, kernel_size=3, padding=1)
         self.conv2_drop = nn.Dropout2d()
         self.fc = nn.Linear(180, class_number)
+
     def forward(self, x):
         x = torch.relu(torch.max_pool2d(self.conv1(x), 2))
         x = torch.relu(torch.max_pool2d(self.conv2(x), 2))

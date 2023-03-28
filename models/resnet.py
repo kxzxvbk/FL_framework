@@ -1,6 +1,7 @@
 import torch
 from torch import Tensor
 import torch.nn as nn
+from torchvision.models.utils import load_state_dict_from_url
 from typing import Type, Any, Callable, Union, List, Optional
 
 
@@ -45,8 +46,7 @@ class BasicBlock(nn.Module):
         groups: int = 1,
         base_width: int = 64,
         dilation: int = 1,
-        norm_layer: Optional[Callable[..., nn.Module]] = None,
-        use_adapter: bool = True,
+        norm_layer: Optional[Callable[..., nn.Module]] = None
     ) -> None:
         super(BasicBlock, self).__init__()
         if norm_layer is None:
@@ -63,9 +63,6 @@ class BasicBlock(nn.Module):
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
         self.stride = stride
-        self.use_adapter = use_adapter
-        if use_adapter:
-            self.adapter = nn.Conv2d(planes, planes, kernel_size=1, stride=1)
 
     def forward(self, x: Tensor) -> Tensor:
         identity = x
@@ -82,9 +79,6 @@ class BasicBlock(nn.Module):
 
         out += identity
         out = self.relu(out)
-
-        if self.use_adapter:
-            out = self.adapter(out)
 
         return out
 
@@ -265,7 +259,9 @@ def _resnet(
 ) -> ResNet:
     model = ResNet(block, layers, **kwargs)
     if pretrained:
-        raise NotImplementedError('No pretrained models are available.')
+        state_dict = load_state_dict_from_url(model_urls[arch],
+                                              progress=progress)
+        model.load_state_dict(state_dict)
     return model
 
 
