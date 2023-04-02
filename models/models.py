@@ -60,16 +60,16 @@ class ModelConstructor:
                 nn.Linear(4096, 4096), nn.ReLU(), nn.Dropout(p=0.5),
                 nn.Linear(4096, 10))
         elif self.args.model == 'resnet9':
-            return resnet.ResNet(torchvision.models.resnet.BasicBlock,
-                                 num_classes=self.args.class_number, layers=[1, 1, 1, 1])
+            return torchvision.models.resnet.ResNet(torchvision.models.resnet.BasicBlock,
+                                                    num_classes=self.args.class_number, layers=[1, 1, 1, 1])
         elif self.args.model == 'resnet18':
-            return resnet.resnet18(self.args.class_number)
+            return torchvision.models.resnet.resnet18(self.args.class_number)
         elif self.args.model == 'resnet50':
-            return resnet.resnet50(num_classes=self.args.class_number)
+            return torchvision.models.resnet.resnet50(num_classes=self.args.class_number)
         elif self.args.model == 'resnet34':
-            return resnet.resnet34(num_classes=self.args.class_number)
+            return torchvision.models.resnet.resnet34(num_classes=self.args.class_number)
         elif self.args.model == 'resnet101':
-            return resnet.resnet101(num_classes=self.args.class_number)
+            return torchvision.models.resnet.resnet101(num_classes=self.args.class_number)
 
         elif self.args.model == 'cifarres':
             return CifarRes(num_classes=self.args.class_number)
