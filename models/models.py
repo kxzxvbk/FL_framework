@@ -63,7 +63,7 @@ class ModelConstructor:
             return torchvision.models.resnet.ResNet(torchvision.models.resnet.BasicBlock,
                                                     num_classes=self.args.class_number, layers=[1, 1, 1, 1])
         elif self.args.model == 'resnet18':
-            return torchvision.models.resnet.resnet18(self.args.class_number)
+            return torchvision.models.resnet.resnet18(num_classes=self.args.class_number)
         elif self.args.model == 'resnet50':
             return torchvision.models.resnet.resnet50(num_classes=self.args.class_number)
         elif self.args.model == 'resnet34':
