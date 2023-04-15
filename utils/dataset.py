@@ -66,7 +66,7 @@ class DatasetConstructor:
                 transform.append(transforms.RandomHorizontalFlip())
                 transform.append(transforms.RandomResizedCrop(new_size, scale=(0.33, 1)))
                 # transform.append(transforms.ColorJitter(0.8, 0.8, 0.8, 0.2))
-                # transform.append(transformsRandomGrayscale(p=0.2))
+                # transform.append(transforms.RandomGrayscale(p=0.2))
             else:
                 transform.append(transforms.Resize(new_size))
             transform.append(transforms.ToTensor())
