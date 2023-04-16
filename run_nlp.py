@@ -35,7 +35,7 @@ def args_parser():
     parser.add_argument('--n_embd', type=int, default=384, help='block_size for gpt')
 
     # dataset
-    parser.add_argument('--dataset', type=str, default='shakespear', help="name of dataset")
+    parser.add_argument('--dataset', type=str, default='openwebtext', help="name of dataset")
     parser.add_argument('--dataloader_type', type=str, default='nlp', help="type for dataloader")
     parser.add_argument('--data_path', type=str, default='./data', help='data path')
     parser.add_argument('--resize', type=int, default=-1, help='resize the input image, -1 means no resizing')

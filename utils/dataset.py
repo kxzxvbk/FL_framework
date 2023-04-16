@@ -2,13 +2,11 @@ import sys
 
 from torchvision import datasets, transforms
 from functools import reduce
-from torch.utils.data import Dataset
 import os
-from PIL import Image
 import numpy as np
 
 class DatasetConstructor:
-    support_dataset = ['mnist', 'cifar10', 'fashion_mnist', 'imagenet-tiny', 'shakespear']
+    support_dataset = ['mnist', 'cifar10', 'fashion_mnist', 'imagenet-tiny', 'shakespear', 'openwebtext']
 
     def __init__(self, args):
         self.dataset = args.dataset.lower()
@@ -78,6 +76,13 @@ class DatasetConstructor:
             data_dir = 'data/shakespear'
             if train:
                 return np.memmap(os.path.join(data_dir, 'train.bin'), dtype=np.uint16, mode='r')
+            else:
+                return np.memmap(os.path.join(data_dir, 'val.bin'), dtype=np.uint16, mode='r')
+
+        elif self.dataset == 'openwebtext':
+            data_dir = path
+            if train:
+                return np.memmap(os.path.join(data_dir, 'train.bin'), dtype=np.uint16, mode='r')[:1e8]
             else:
                 return np.memmap(os.path.join(data_dir, 'val.bin'), dtype=np.uint16, mode='r')
 
