@@ -100,7 +100,6 @@ class Server:
         criterion = get_loss(loss)
 
         for i, (batch_x, batch_y) in enumerate(self.test_loader):
-            print(i)
             batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
             if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
                 o = model(batch_x, batch_y)
