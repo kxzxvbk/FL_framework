@@ -4,7 +4,8 @@ import torch
 
 
 class Server:
-    def __init__(self, device, test_loader):
+    def __init__(self, args, device, test_loader):
+        self.args = args
         self.attrs = {}
 
         self.device = device if device >= 0 else 'cpu'
@@ -98,13 +99,22 @@ class Server:
 
         criterion = get_loss(loss)
 
-        for _, (batch_x, batch_y) in enumerate(self.test_loader):
+        for i, (batch_x, batch_y) in enumerate(self.test_loader):
+            print(i)
             batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
-            o = model(batch_x)
-            tot_loss += criterion(o, batch_y).item()
-            y_pred = o.data.max(1, keepdim=True)[1]
-            correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
-            total += batch_y.shape[0]
+            if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
+                o = model(batch_x, batch_y)
+                loss = criterion(o, batch_y)
+                tot_loss += loss.item()
+                _, y_pred = o[0][0].data.max(1, keepdim=True)
+                correct += 1
+                total += batch_y.shape[0]
+            else:
+                o = model(batch_x)
+                tot_loss += criterion(o, batch_y).item()
+                y_pred = o.data.max(1, keepdim=True)[1]
+                correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
+                total += batch_y.shape[0]
         model.to('cpu')
 
         avg_acc = correct / total

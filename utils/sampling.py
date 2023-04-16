@@ -1,8 +1,9 @@
 import random
 from torch.utils import data
 import numpy as np
+from utils.nlp_dataset import NLPDataset
 
-support_sampling_method = ['iid', 'dirichlet']
+support_sampling_method = ['iid', 'dirichlet', 'sequential']
 
 
 class MyDataset(data.Dataset):
@@ -17,7 +18,7 @@ class MyDataset(data.Dataset):
         return len(self.indexes)
 
 
-def sample(method, dataset, client_number, alpha=1.):
+def sample(method, dataset, client_number, args, alpha=1.):
     assert method in support_sampling_method
     if method == 'iid':
         return iid_sampling(dataset, client_number)
@@ -25,6 +26,8 @@ def sample(method, dataset, client_number, alpha=1.):
         data_labels = np.stack([dataset[i][1] for i in range(len(dataset))], axis=0)
         indexes = dirichlet_sampling(data_labels, client_number, alpha=alpha)
         return [MyDataset(tot_data=dataset, indexes=indexes[i]) for i in range(client_number)]
+    elif method == 'sequential':
+        return sequential_sampling(dataset, client_number, args)
 
 
 def iid_sampling(dataset, client_number):
@@ -36,6 +39,13 @@ def iid_sampling(dataset, client_number):
     dict_users[client_number - 1] = all_index
 
     return [MyDataset(tot_data=dataset, indexes=dict_users[i]) for i in range(len(dict_users))]
+
+
+def sequential_sampling(dataset, client_number, args):
+    len_per_client = dataset.shape[0] // client_number
+    return [NLPDataset(dataset[i * len_per_client: (i+1) * len_per_client], args.batch_size,
+                       args.block_size, args.device)
+            for i in range(client_number)]
 
 
 def dirichlet_sampling(dataset, client_number, alpha):

@@ -1,3 +1,5 @@
+import torch
+
 from models.models import ModelConstructor
 from torch.utils.data import DataLoader
 import torch.optim as optim
@@ -10,6 +12,8 @@ cnt = 0
 def get_optimizer(name, lr, momentum, weights):
     if name == 'sgd':
         return optim.SGD(params=weights, momentum=momentum, lr=lr)
+    elif name == 'Adam':
+        return optim.Adam(params=weights, lr=lr)
     else:
         print('Unrecognized optimizer: ' + name)
         assert False
@@ -20,6 +24,8 @@ def get_loss(name):
         return nn.CrossEntropyLoss()
     elif name == 'MSE':
         return nn.MSELoss()
+    elif name == 'gpt':
+        return lambda x, y: x[1]
     else:
         print('Unrecognized loss: ' + name)
         assert False
@@ -27,13 +33,14 @@ def get_loss(name):
 
 class Client:
     def __init__(self, train_dataset, args, client_id, test_dataset=None):
+        self.args = args
         self.train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+        if test_dataset:
+            self.test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size)
         self.model = ModelConstructor(args).get_model()
         self.device = args.device if args.device >= 0 else 'cpu'
         self.client_id = client_id
         self.fed_keys = []  # only weights in fed_keys will use fed-learning to gather
-        if test_dataset:
-            self.test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size)
 
         self.start_round = args.start_round
 
@@ -62,12 +69,19 @@ class Client:
         for epoch in range(local_eps):
             for _, (batch_x, batch_y) in enumerate(self.train_dataloader):
                 batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
-                o = self.model(batch_x)
-                loss = criterion(o, batch_y)
-
-                tot_loss += loss.item()
-                _, y_pred = o.data.max(1, keepdim=True)
-                correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
+                if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
+                    o = self.model(batch_x, batch_y)
+                    loss = criterion(o, batch_y)
+                    tot_loss += loss.item()
+                    _, y_pred = o[0][0].data.max(1, keepdim=True)
+                    correct += 1
+                    total += batch_y.shape[0]
+                else:
+                    o = self.model(batch_x)
+                    loss = criterion(o, batch_y)
+                    tot_loss += loss.item()
+                    _, y_pred = o.data.max(1, keepdim=True)
+                    correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
                 total += batch_y.shape[0]
 
                 op.zero_grad()

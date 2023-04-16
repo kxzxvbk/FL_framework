@@ -8,6 +8,7 @@ from models.testnet_cnn import *
 from models.testnet_resnet import *
 from vit_pytorch import ViT
 import torch
+from models.gpt import GPT, GPTConfig
 
 
 class ModelConstructor:
@@ -73,15 +74,12 @@ class ModelConstructor:
 
         elif self.args.model == 'cifarres':
             return CifarRes(num_classes=self.args.class_number)
-        elif self.args.model == 'transformer':
-            ntokens = 28783  # size of vocabulary
-            emsize = 200  # embedding dimension
-            d_hid = 200  # dimension of the feedforward network model in nn.TransformerEncoder
-            nlayers = 2  # number of nn.TransformerEncoderLayer in nn.TransformerEncoder
-            nhead = 2  # number of heads in nn.MultiheadAttention
-            dropout = 0.2  # dropout probability
-            model = TransformerModel(ntokens, emsize, nhead, d_hid, nlayers, dropout)
-            return model
+        elif self.args.model == 'gpt':
+            model_args = dict(n_layer=self.args.n_layer, n_head=self.args.n_head, n_embd=self.args.n_embd,
+                              block_size=self.args.block_size,
+                              bias=False, vocab_size=50304, dropout=0)
+            config = GPTConfig(**model_args)
+            return GPT(config)
         # For test CNNs.
         elif self.args.model == 'testcnn_normal':
             return CNNNormal(class_number=self.args.class_number)

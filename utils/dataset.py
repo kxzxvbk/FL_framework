@@ -5,10 +5,10 @@ from functools import reduce
 from torch.utils.data import Dataset
 import os
 from PIL import Image
-
+import numpy as np
 
 class DatasetConstructor:
-    support_dataset = ['mnist', 'cifar10', 'fashion_mnist', 'imagenet-tiny']
+    support_dataset = ['mnist', 'cifar10', 'fashion_mnist', 'imagenet-tiny', 'shakespear']
 
     def __init__(self, args):
         self.dataset = args.dataset.lower()
@@ -73,6 +73,13 @@ class DatasetConstructor:
             transform = transforms.Compose(transform)
             return datasets.ImageFolder(root=os.path.join(path, 'tiny-imagenet-200', folder),
                                         transform=transform)
+
+        elif self.dataset == 'shakespear':
+            data_dir = 'data/shakespear'
+            if train:
+                return np.memmap(os.path.join(data_dir, 'train.bin'), dtype=np.uint16, mode='r')
+            else:
+                return np.memmap(os.path.join(data_dir, 'val.bin'), dtype=np.uint16, mode='r')
 
 
 def calculate_mean_std(train_dataset, test_dataset):

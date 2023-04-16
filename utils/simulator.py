@@ -30,10 +30,14 @@ class Simulator:
         # load dataset
         train_set = DatasetConstructor(self.args).get_dataset()
         test_set = DatasetConstructor(self.args).get_dataset(train=False)
+        if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
+            test_set = sample(self.args.sample_method, test_set, self.args.client_num,
+                              alpha=self.args.alpha, args=self.args)[0]
 
         # split dataset into clients. alpha affects the distribution for dirichlet non-iid sampling.
         # If you don't use dirichlet, this parameter can be omitted.
-        train_sets = sample(self.args.sample_method, train_set, self.args.client_num, alpha=self.args.alpha)
+        train_sets = sample(self.args.sample_method, train_set, self.args.client_num,
+                            alpha=self.args.alpha, args=self.args)
 
         # if you need all clients to test locally use next line to split test sets
         # test_sets = sample(self.args.sample_method, test_set, self.args.client_num)
@@ -60,7 +64,8 @@ class Simulator:
         if self.args.resume:
             glob_dict = torch.load('./model_checkpoints/model.ckpt')
 
-        server = Server(self.args.device, data.DataLoader(test_set, batch_size=self.args.batch_size, shuffle=True))
+        dataloader = data.DataLoader(test_set, batch_size=self.args.batch_size, shuffle=True)
+        server = Server(self.args, self.args.device, dataloader)
         server.add_attr(name='glob_dict', item=glob_dict)
         client_pool.server = server
 
@@ -131,7 +136,7 @@ class Simulator:
             logger.logging('epoch:{}, train_acc: {:.4f}, train_loss: {:.4f}, trans_cost: {:.4f}M'
                            .format(i, train_accuracies[-1], train_losses[-1], trans_costs[-1] / 1e6))
             tb_logger.add_scalar('train/acc', train_accuracies[-1], i)
-            tb_logger.add_scalar('train/loss',  train_losses[-1], i)
+            tb_logger.add_scalar('train/loss', train_losses[-1], i)
             tb_logger.add_scalar('train/lr', cur_lr, i)
 
             if i % self.args.test_freq == 0:
