@@ -3,7 +3,7 @@ import numpy as np
 
 
 class NLPDataset:
-    def __init__(self, data, batch_size, block_size, device, batch_num=3000):
+    def __init__(self, data, batch_size, block_size, device, batch_num=20000):
         self.data = data
         self.batch_size = batch_size
         self.block_size = block_size

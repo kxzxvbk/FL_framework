@@ -82,7 +82,7 @@ class DatasetConstructor:
         elif self.dataset == 'openwebtext':
             data_dir = path
             if train:
-                return np.memmap(os.path.join(data_dir, 'train.bin'), dtype=np.uint16, mode='r')[:1e8]
+                return np.memmap(os.path.join(data_dir, 'train.bin'), dtype=np.uint16, mode='r')[:int(1e8)]
             else:
                 return np.memmap(os.path.join(data_dir, 'val.bin'), dtype=np.uint16, mode='r')
 

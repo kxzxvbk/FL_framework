@@ -26,7 +26,7 @@ def args_parser():
     parser.add_argument('--optimizer', type=str, default='sgd', help='optimizer type')
 
     # model
-    parser.add_argument('--model', type=str, default='cifarres', help='model name')
+    parser.add_argument('--model', type=str, default='swin', help='model name')
     parser.add_argument('--input_channel', type=int, default=3, help='input channel')
     parser.add_argument('--class_number', type=int, default=200, help='class channel')
 
@@ -37,7 +37,7 @@ def args_parser():
 
     # logging and evaluation
     parser.add_argument('--test_freq', type=int, default=3, help="rounds of testing")
-    parser.add_argument('--logging_path', type=str, default='./logging/imagenet_tiny_cifarres_avg_iid', help='logging path')
+    parser.add_argument('--logging_path', type=str, default='./logging/imagenet_tiny_swin_avg_iid', help='logging path')
 
     args = parser.parse_args()
     return args

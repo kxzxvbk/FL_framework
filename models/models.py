@@ -7,6 +7,7 @@ from models.myres import CifarRes
 from models.testnet_cnn import *
 from models.testnet_resnet import *
 from vit_pytorch import ViT
+from models.swin_transformer import SwinTransformer
 import torch
 from models.gpt import GPT, GPTConfig
 
@@ -109,6 +110,15 @@ class ModelConstructor:
                 depth=6,
                 heads=6,
                 mlp_dim=1024
+            )
+        elif self.args.model == 'swin':
+            return SwinTransformer(
+                image_size=64,
+                embed_dim=32,
+                depths=[1, 1, 3, 1],
+                num_heads=[2, 4, 8, 16],
+                patch_size=4,
+                num_classes=self.args.class_number,
             )
         else:
             print('Unrecognized model name: ' + self.args.model)
