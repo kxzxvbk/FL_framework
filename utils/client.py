@@ -5,14 +5,15 @@ from torch.utils.data import DataLoader
 import torch.optim as optim
 import torch.nn as nn
 import copy
+import random
 
 cnt = 0
 
 
 def get_optimizer(name, lr, momentum, weights):
-    if name == 'sgd':
+    if name.lower() == 'sgd':
         return optim.SGD(params=weights, momentum=momentum, lr=lr)
-    elif name == 'Adam':
+    elif name.lower() == 'adam':
         return optim.Adam(params=weights, lr=lr)
     else:
         print('Unrecognized optimizer: ' + name)
@@ -32,11 +33,25 @@ def get_loss(name):
 
 
 class Client:
-    def __init__(self, train_dataset, args, client_id, test_dataset=None):
+    def __init__(self, train_dataset, args, client_id, test_dataset=None, test_frac=0):
         self.args = args
-        self.train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-        if test_dataset:
-            self.test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size)
+        if test_frac == 0:
+            self.sample_num = len(train_dataset)
+            self.train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
+        else:
+            real_train = copy.deepcopy(train_dataset)
+            real_test = copy.deepcopy(train_dataset)
+            indexes = real_train.indexes
+            random.shuffle(indexes)
+            train_index = indexes[:int((1 - test_frac) * len(train_dataset))]
+            test_index = indexes[int((1 - test_frac) * len(train_dataset)):]
+            real_train.indexes = train_index
+            real_test.indexes = test_index
+            self.sample_num = len(real_train)
+
+            self.train_dataloader = DataLoader(real_train, batch_size=args.batch_size, shuffle=True)
+            self.test_dataloader = DataLoader(real_test, batch_size=args.batch_size, shuffle=True)
+
         self.model = ModelConstructor(args).get_model()
         self.device = args.device if args.device >= 0 else 'cpu'
         self.client_id = client_id
@@ -54,7 +69,7 @@ class Client:
 
         self.model.load_state_dict(state_dict)
 
-    def train(self, lr, momentum, optimizer, loss, local_eps=1):
+    def train(self, lr, momentum, optimizer, loss, local_eps=1, finetune=False):
         # Local training.
         self.model.train()
         self.model.to(self.device)
@@ -63,7 +78,11 @@ class Client:
         total = 0
         tot_loss = 0
 
-        op = get_optimizer(name=optimizer, lr=lr, momentum=momentum, weights=self.model.parameters())
+        if finetune:
+            weights = self.model.finetune_parameters()
+        else:
+            weights = self.model.parameters()
+        op = get_optimizer(name=optimizer, lr=lr, momentum=momentum, weights=weights)
         criterion = get_loss(loss)
 
         for epoch in range(local_eps):
@@ -102,14 +121,14 @@ class Client:
         self.model.to(self.device)
 
         criterion = get_loss(loss)
-
-        for _, (batch_x, batch_y) in enumerate(self.test_dataloader):
-            batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
-            o = self.model(batch_x)
-            tot_loss += criterion(o, batch_y).item()
-            y_pred = o.data.max(1, keepdim=True)[1]
-            correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
-            total += batch_y.shape[0]
+        with torch.no_grad():
+            for _, (batch_x, batch_y) in enumerate(self.test_dataloader):
+                batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
+                o = self.model(batch_x)
+                tot_loss += criterion(o, batch_y).item()
+                y_pred = o.data.max(1, keepdim=True)[1]
+                correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
+                total += batch_y.shape[0]
         self.model.to('cpu')
 
         avg_acc = correct / total

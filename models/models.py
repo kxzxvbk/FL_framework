@@ -2,8 +2,10 @@ import torchvision
 import torch
 from torch import nn
 from vit_pytorch import ViT
+import platform
 
 from models.cifar_resnet import CifarRes
+from models.lorp_resnet import LorpRes
 from models.swin_transformer import SwinTransformer
 from models.gpt import GPT, GPTConfig
 
@@ -17,10 +19,14 @@ class ModelConstructor:
 
     def get_model(self):
         if torch.__version__[0] == '2':
-            print('Using PyTorch >= 2.0, compiling the model ...')
-            torch.set_float32_matmul_precision('high')
-            ret = torch.compile(self._get_model())
-            print('Compiling finished.')
+            if platform.system().lower() == 'linux':
+                print('Using PyTorch >= 2.0, compiling the model ...')
+                torch.set_float32_matmul_precision('high')
+                ret = torch.compile(self._get_model())
+                print('Compiling finished.')
+            else:
+                print('Using PyTorch >= 2.0, but current platform is: ' + platform.system() + '  Give up compiling...')
+                return self._get_model()
             return ret
         elif torch.__version__[0] == '1':
             print('Using PyTorch < 2.0, skip compiling the model')
@@ -69,6 +75,11 @@ class ModelConstructor:
 
         elif self.args.model == 'cifarres':
             return CifarRes(num_classes=self.args.class_number)
+
+        elif self.args.model == 'lorpres':
+            return LorpRes(self.args.r, self.args.conv_type, self.args.bias,
+                           self.args.lorp_res, num_classes=self.args.class_number)
+
         elif self.args.model == 'gpt':
             model_args = dict(n_layer=self.args.n_layer, n_head=self.args.n_head, n_embd=self.args.n_embd,
                               block_size=self.args.block_size,
