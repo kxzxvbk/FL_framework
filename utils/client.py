@@ -34,6 +34,7 @@ def get_loss(name):
 class Client:
     def __init__(self, train_dataset, args, client_id, test_dataset=None):
         self.args = args
+        self.sample_number = len(train_dataset)
         self.train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
         if test_dataset:
             self.test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size)
