@@ -65,6 +65,12 @@ class Simulator:
             for key in state_dict:
                 if 'side_conv' not in key:
                     glob_dict[key] = state_dict[key]
+        elif self.args.fed_dict == 'no_fc':
+            state_dict = client_pool[0].model.state_dict()
+            glob_dict = {}
+            for key in state_dict:
+                if 'fc' not in key:
+                    glob_dict[key] = state_dict[key]
         else:
             glob_dict = client_pool[0].get_state_dict(self.args.fed_dict)
         if self.args.resume:
