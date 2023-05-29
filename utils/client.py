@@ -132,7 +132,10 @@ class Client:
         tot_losses = []
 
         # Get weights to be finetuned.
-        weights = self.model.finetune_parameters()
+        if self.args.finetune_type != 'all':
+            weights = self.model.finetune_parameters()
+        else:
+            weights = self.model.parameters()
         # Get optimizer and loss.
         op = get_optimizer(name=optimizer, lr=lr, momentum=momentum, weights=weights)
         criterion = get_loss(loss)
