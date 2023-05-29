@@ -94,11 +94,16 @@ class LorpRes(nn.Module):
                 res.append(param)
         return res
 
+    def beside_side_parameters(self):
+        res = []
+        for key, param in self.named_parameters():
+            if 'side_conv' not in key:
+                res.append(param)
+        return res
+
 
 if __name__ == '__main__':
     model = LorpRes(2, 'A', True, lorp_res=True).cuda()
     x = torch.randn(1, 3, 32, 32).cuda()
     y = model(x)
     optim = torch.optim.Adam(model.finetune_parameters(), lr=1e-2)
-
-

@@ -3,7 +3,7 @@ import torch.nn as nn
 
 
 class LorpConv2d(nn.Module):
-    def __init__(self, in_channels, out_channels, kernel_size, padding, r, bias, conv_type, zero_init=False):
+    def __init__(self, in_channels, out_channels, kernel_size, padding, r, bias, conv_type, zero_init=True):
         """
         The main convolution is a standard conv2d module specified by `in_channels`, `out_channels`, `kernel_size`.
         The side convolution consists of two types:

@@ -69,7 +69,7 @@ class Client:
 
         self.model.load_state_dict(state_dict)
 
-    def train(self, lr, momentum, optimizer, loss, local_eps=1, finetune=False):
+    def train(self, lr, momentum, optimizer, loss, local_eps=1, finetune=False, freeze_side=True):
         # Local training.
         self.model.train()
         self.model.to(self.device)
@@ -80,6 +80,12 @@ class Client:
 
         if finetune:
             weights = self.model.finetune_parameters()
+        elif freeze_side:
+            try:
+                weights = self.model.beside_side_parameters()
+            except AttributeError:
+                print('Model does not support beside_side_parameters. Skipping ... ')
+                weights = self.model.parameters()
         else:
             weights = self.model.parameters()
         op = get_optimizer(name=optimizer, lr=lr, momentum=momentum, weights=weights)
