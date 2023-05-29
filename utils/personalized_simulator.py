@@ -86,8 +86,6 @@ class Simulator:
         client_pool.sync()
         train_accuracies = []
         train_losses = []
-        test_accuracies = []
-        test_losses = []
         trans_costs = []
 
         # training loop
@@ -149,6 +147,7 @@ class Simulator:
             tb_logger.add_scalar('train/loss', train_losses[-1], i)
             tb_logger.add_scalar('train/lr', cur_lr, i)
 
+            # Test after aggregation.
             if i % self.args.test_freq == 0:
                 tmp_test_acc = []
                 tmp_test_loss = []
@@ -169,7 +168,9 @@ class Simulator:
                 if not os.path.exists('./model_checkpoints'):
                     os.makedirs('./model_checkpoints')
                 torch.save(client_pool.server['glob_dict'], './model_checkpoints/model.ckpt')
-
+        #################################################
+        # Finetune and calculate final accuracy & loss. #
+        #################################################
         tmp_test_acc = []
         tmp_test_loss = []
         tmp_train_acc = []
@@ -177,31 +178,28 @@ class Simulator:
         for j in tqdm.tqdm(range(len(client_pool.clients))):
             # Local training in each client.
             client = client_pool[j]
-            acc, loss = client.train(
-                lr=cur_lr,
+            # Get train_acc, train_loss, test_acc, test_loss
+            acc, loss, tmp_ta, tmp_tl = client.finetune(
+                lr=self.args.lr,
                 momentum=self.args.momentum,
                 optimizer=self.args.optimizer,
                 loss=self.args.loss,
-                local_eps=self.args.loc_eps,
-                finetune=True
+                local_eps=self.args.loc_eps
             )
             tmp_train_acc.append(acc)
             tmp_train_loss.append(loss)
-
-            acc, loss = client.test('CrossEntropyLoss')
-            tmp_test_acc.append(acc)
-            tmp_test_loss.append(loss)
+            tmp_test_acc.append(tmp_ta)
+            tmp_test_loss.append(tmp_tl)
+        # Logging the relevant metrics.
         tmp_train_acc = sum(tmp_train_acc) / len(tmp_train_acc)
         tmp_train_loss = sum(tmp_train_loss) / len(tmp_train_loss)
         tb_logger.add_scalar('finetune/train_acc', tmp_train_acc, 0)
         tb_logger.add_scalar('finetune/train_loss', tmp_train_loss, 0)
 
-        tmp_test_acc = sum(tmp_test_acc) / len(tmp_test_acc)
-        tmp_test_loss = sum(tmp_test_loss) / len(tmp_test_loss)
-        tb_logger.add_scalar('finetune/test_acc', tmp_test_acc, 0)
-        tb_logger.add_scalar('finetune/test_loss', tmp_test_loss, 0)
-
-        np.savez('results', np.array(train_accuracies),
-                 np.array(train_losses),
-                 np.array(test_accuracies),
-                 np.array(test_losses))
+        for i in range(len(tmp_test_acc[0])):
+            mean_acc = sum([tmp_test_acc[j][i] for j in range(len(tmp_test_acc))]) \
+                       / len([tmp_test_acc[j][i] for j in range(len(tmp_test_acc))])
+            mean_loss = sum([tmp_test_loss[j][i] for j in range(len(tmp_test_loss))]) \
+                        / len([tmp_test_loss[j][i] for j in range(len(tmp_test_loss))])
+            tb_logger.add_scalar('finetune/test_acc', mean_acc, i)
+            tb_logger.add_scalar('finetune/test_loss', mean_loss, i)

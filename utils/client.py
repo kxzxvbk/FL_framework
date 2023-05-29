@@ -119,7 +119,61 @@ class Client:
         self.model.to('cpu')
         return avg_acc, avg_loss
 
+    def finetune(self, lr, momentum, optimizer, loss, local_eps=1):
+        # Local training.
+        self.model.train()
+        self.model.to(self.device)
+
+        # For calculating train loss and train acc.
+        correct = 0
+        total = 0
+        tot_loss = 0
+        tot_acces = []
+        tot_losses = []
+
+        # Get weights to be finetuned.
+        weights = self.model.finetune_parameters()
+        # Get optimizer and loss.
+        op = get_optimizer(name=optimizer, lr=lr, momentum=momentum, weights=weights)
+        criterion = get_loss(loss)
+
+        # Main loop.
+        for epoch in range(local_eps):
+            self.model.train()
+            self.model.to(self.device)
+            for _, (batch_x, batch_y) in enumerate(self.train_dataloader):
+                batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
+                # If the task is nlp.
+                if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
+                    o = self.model(batch_x, batch_y)
+                    loss = criterion(o, batch_y)
+                    tot_loss += loss.item()
+                    _, y_pred = o[0][0].data.max(1, keepdim=True)
+                    correct += 1
+                    total += batch_y.shape[0]
+                # CV task.
+                else:
+                    o = self.model(batch_x)
+                    loss = criterion(o, batch_y)
+                    tot_loss += loss.item()
+                    _, y_pred = o.data.max(1, keepdim=True)
+                    correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
+                total += batch_y.shape[0]
+                op.zero_grad()
+                loss.backward()
+                op.step()
+            # Test model every epoch.
+            acc, loss = self.test('CrossEntropyLoss')
+            tot_acces.append(acc)
+            tot_losses.append(loss)
+
+        avg_acc = correct / total
+        avg_loss = tot_loss / total
+        self.model.to('cpu')
+        return avg_acc, avg_loss, tot_acces, tot_losses
+
     def test(self, loss):
+        # Test model.
         correct = 0
         total = 0
         tot_loss = 0

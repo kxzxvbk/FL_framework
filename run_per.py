@@ -5,8 +5,8 @@ import argparse
 def args_parser():
     parser = argparse.ArgumentParser()
     # federated arguments
-    parser.add_argument('--loc_eps', type=int, default=8, help="rounds of training")
-    parser.add_argument('--glob_eps', type=int, default=50, help="global training round")
+    parser.add_argument('--loc_eps', type=int, default=2, help="rounds of training")
+    parser.add_argument('--glob_eps', type=int, default=1, help="global training round")
     parser.add_argument('--client_num', type=int, default=30, help="number of client")
     parser.add_argument('--client_sample_rate', type=float, default=1, help="client_sample_rate")
     parser.add_argument('--decay_factor', type=float, default=1, help="decay factor of learning rate")
