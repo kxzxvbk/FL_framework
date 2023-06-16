@@ -1,4 +1,7 @@
 import pickle
+import torch
+import numpy as np
+import random
 
 
 def get_params_number(net):
@@ -17,3 +20,11 @@ def save_file(obj, path):
 def load_file(path):
     with open(path, 'rb') as f:
         return pickle.load(f)
+
+
+def seed_everything(seed):
+    torch.manual_seed(seed)
+    np.random.seed(seed)
+    random.seed(seed)
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)

@@ -73,3 +73,22 @@ class CifarRes(nn.Module):
         y = self.head(y)
         y = self.fc(y)
         return y
+
+    def finetune_parameters(self, ftype):
+        res = []
+        if ftype == 'all':
+            use_keys = self.state_dict().keys()
+        elif ftype == 'fc':
+            use_keys = []
+            for k in self.state_dict().keys():
+                if 'fc' in k:
+                    use_keys.append(k)
+        else:
+            raise ValueError
+
+        print('Finetune Keys: ' + str(use_keys))
+
+        for key, param in self.named_parameters():
+            if key in use_keys:
+                res.append(param)
+        return res
