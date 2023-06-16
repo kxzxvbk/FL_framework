@@ -35,12 +35,6 @@ def get_loss(name):
 class Client:
     def __init__(self, train_dataset, args, client_id, test_dataset=None, test_frac=0):
         self.args = args
-<<<<<<< HEAD
-        self.sample_number = len(train_dataset)
-        self.train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
-        if test_dataset:
-            self.test_dataloader = DataLoader(test_dataset, batch_size=args.batch_size)
-=======
         if test_frac == 0:
             self.sample_num = len(train_dataset)
             self.train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True)
@@ -58,7 +52,6 @@ class Client:
             self.train_dataloader = DataLoader(real_train, batch_size=args.batch_size, shuffle=True)
             self.test_dataloader = DataLoader(real_test, batch_size=args.batch_size, shuffle=True)
 
->>>>>>> lorp
         self.model = ModelConstructor(args).get_model()
         self.device = args.device if args.device >= 0 else 'cpu'
         self.client_id = client_id
