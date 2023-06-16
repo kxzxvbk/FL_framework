@@ -1421,3 +1421,4 @@ events.*
 logging/
 model_checkpoints/
 results.npz
+data/
