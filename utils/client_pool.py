@@ -28,7 +28,7 @@ class ClientPool:
         :return: None
         """
         if self.args.aggr_method == 'avg':
-            trans_cost = fed_avg(self.clients, self.server, tb_logger)
+            trans_cost = fed_avg(self.clients, self.server)
             self.sync()
         else:
             print('Unrecognized compression method: ' + self.method)

@@ -2,38 +2,13 @@ import torch
 
 from models.models import ModelConstructor
 from torch.utils.data import DataLoader
-import torch.optim as optim
-import torch.nn as nn
 import copy
 import random
-
-cnt = 0
-
-
-def get_optimizer(name, lr, momentum, weights):
-    if name.lower() == 'sgd':
-        return optim.SGD(params=weights, momentum=momentum, lr=lr)
-    elif name.lower() == 'adam':
-        return optim.Adam(params=weights, lr=lr)
-    else:
-        print('Unrecognized optimizer: ' + name)
-        assert False
-
-
-def get_loss(name):
-    if name == 'CrossEntropyLoss':
-        return nn.CrossEntropyLoss()
-    elif name == 'MSE':
-        return nn.MSELoss()
-    elif name == 'gpt':
-        return lambda x, y: x[1]
-    else:
-        print('Unrecognized loss: ' + name)
-        assert False
+from utils.utils import get_optimizer, get_loss
 
 
 class Client:
-    def __init__(self, train_dataset, args, client_id, test_dataset=None, test_frac=0):
+    def __init__(self, train_dataset, args, client_id, test_frac=0):
         self.args = args
         if test_frac == 0:
             self.sample_num = len(train_dataset)

@@ -2,6 +2,30 @@ import pickle
 import torch
 import numpy as np
 import random
+import torch.nn as nn
+import torch.optim as optim
+
+
+def get_optimizer(name, lr, momentum, weights):
+    if name.lower() == 'sgd':
+        return optim.SGD(params=weights, momentum=momentum, lr=lr)
+    elif name.lower() == 'adam':
+        return optim.Adam(params=weights, lr=lr)
+    else:
+        print('Unrecognized optimizer: ' + name)
+        assert False
+
+
+def get_loss(name):
+    if name == 'CrossEntropyLoss':
+        return nn.CrossEntropyLoss()
+    elif name == 'MSE':
+        return nn.MSELoss()
+    elif name == 'gpt':
+        return lambda x, y: x[1]
+    else:
+        print('Unrecognized loss: ' + name)
+        assert False
 
 
 def get_params_number(net):

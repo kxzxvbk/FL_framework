@@ -1,4 +1,3 @@
-from utils.personalized_simulator import Simulator
 import argparse
 from utils.utils import seed_everything
 
@@ -51,6 +50,7 @@ def args_parser():
 
 
 if __name__ == '__main__':
+    from utils.personalized_simulator import Simulator
     args = args_parser()
     seed_everything(args.seed)
     simulator = Simulator(args)

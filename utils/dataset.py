@@ -1,18 +1,14 @@
-import sys
-
 from torchvision import datasets, transforms
 from functools import reduce
 import os
 import numpy as np
 
-class DatasetConstructor:
-    support_dataset = ['mnist', 'cifar10', 'fashion_mnist', 'imagenet-tiny', 'shakespear', 'openwebtext']
 
+class DatasetConstructor:
     def __init__(self, args):
         self.dataset = args.dataset.lower()
         self.path = args.data_path
         self.resize = args.resize
-        assert self.dataset in self.support_dataset
 
     def get_dataset(self, train=True):
         path = self.path if self.path is not None else './data/' + self.dataset
@@ -60,11 +56,8 @@ class DatasetConstructor:
             transform = []
             new_size = 64 if self.resize < 0 else self.resize
             if train:
-                # transform.append(transforms.Resize(new_size))
                 transform.append(transforms.RandomHorizontalFlip())
                 transform.append(transforms.RandomResizedCrop(new_size, scale=(0.33, 1)))
-                # transform.append(transforms.ColorJitter(0.8, 0.8, 0.8, 0.2))
-                # transform.append(transforms.RandomGrayscale(p=0.2))
             else:
                 transform.append(transforms.Resize(new_size))
             transform.append(transforms.ToTensor())
@@ -85,6 +78,9 @@ class DatasetConstructor:
                 return np.memmap(os.path.join(data_dir, 'train.bin'), dtype=np.uint16, mode='r')[:int(1e8)]
             else:
                 return np.memmap(os.path.join(data_dir, 'val.bin'), dtype=np.uint16, mode='r')
+
+        else:
+            raise ValueError(f'Dataset: {self.dataset} not implemented.')
 
 
 def calculate_mean_std(train_dataset, test_dataset):
