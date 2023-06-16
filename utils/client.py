@@ -8,6 +8,7 @@ from utils.utils import get_optimizer, get_loss
 
 
 class Client:
+
     def __init__(self, train_dataset, args, client_id, test_frac=0):
         self.args = args
         if test_frac == 0:
@@ -147,8 +148,12 @@ class Client:
 
             avg_acc = correct / total
             avg_loss = tot_loss / total
-            res_dict[ftype] = {'train_acc': avg_acc, 'test_acc': tot_acces,
-                               'train_loss': avg_loss, 'test_loss': tot_losses}
+            res_dict[ftype] = {
+                'train_acc': avg_acc,
+                'test_acc': tot_acces,
+                'train_loss': avg_loss,
+                'test_loss': tot_losses
+            }
             self.model.to('cpu')
             self.model = model_bak
         new_dict = {}

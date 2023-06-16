@@ -7,6 +7,7 @@ support_sampling_method = ['iid', 'dirichlet', 'sequential']
 
 
 class MyDataset(data.Dataset):
+
     def __init__(self, tot_data, indexes):
         self.tot_data = tot_data
         self.indexes = indexes
@@ -43,9 +44,10 @@ def iid_sampling(dataset, client_number):
 
 def sequential_sampling(dataset, client_number, args):
     len_per_client = dataset.shape[0] // client_number
-    return [NLPDataset(dataset[i * len_per_client: (i+1) * len_per_client], args.batch_size,
-                       args.block_size, args.device)
-            for i in range(client_number)]
+    return [
+        NLPDataset(dataset[i * len_per_client:(i + 1) * len_per_client], args.batch_size, args.block_size, args.device)
+        for i in range(client_number)
+    ]
 
 
 def dirichlet_sampling(dataset, client_number, alpha):
@@ -55,8 +57,7 @@ def dirichlet_sampling(dataset, client_number, alpha):
     label_distribution = np.random.dirichlet([alpha] * client_number, n_classes)
 
     # recording the sample indexes for each class
-    class_indexes = [np.argwhere(dataset == y).flatten()
-                     for y in range(n_classes)]
+    class_indexes = [np.argwhere(dataset == y).flatten() for y in range(n_classes)]
     for item in class_indexes:
         np.random.shuffle(item)
 

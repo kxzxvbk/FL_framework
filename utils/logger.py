@@ -4,6 +4,7 @@ import warnings
 
 
 class Logger:
+
     def __init__(self, path):
         self.path = os.path.join(path, 'txt_file.txt')
         if os.path.exists(path):

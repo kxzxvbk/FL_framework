@@ -5,6 +5,7 @@ import numpy as np
 
 
 class DatasetConstructor:
+
     def __init__(self, args):
         self.dataset = args.dataset.lower()
         self.path = args.data_path
@@ -62,8 +63,7 @@ class DatasetConstructor:
                 transform.append(transforms.Resize(new_size))
             transform.append(transforms.ToTensor())
             transform = transforms.Compose(transform)
-            return datasets.ImageFolder(root=os.path.join(path, 'tiny-imagenet-200', folder),
-                                        transform=transform)
+            return datasets.ImageFolder(root=os.path.join(path, 'tiny-imagenet-200', folder), transform=transform)
 
         elif self.dataset == 'shakespear':
             data_dir = 'data/shakespear'

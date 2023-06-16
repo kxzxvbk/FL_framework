@@ -2,24 +2,19 @@ import torch.nn as nn
 
 
 class ResBlock(nn.Module):
+
     def __init__(self, inplane, outplane):
         super().__init__()
         self.conv_bn_relu_1 = nn.Sequential(
-            nn.Conv2d(inplane, outplane, kernel_size=3, padding=1),
-            nn.BatchNorm2d(outplane),
-            nn.ReLU()
+            nn.Conv2d(inplane, outplane, kernel_size=3, padding=1), nn.BatchNorm2d(outplane), nn.ReLU()
         )
 
         self.conv_bn_relu_2 = nn.Sequential(
-            nn.Conv2d(outplane, outplane, kernel_size=3, padding=1),
-            nn.BatchNorm2d(outplane),
-            nn.ReLU()
+            nn.Conv2d(outplane, outplane, kernel_size=3, padding=1), nn.BatchNorm2d(outplane), nn.ReLU()
         )
 
         self.conv_bn_relu_3 = nn.Sequential(
-            nn.Conv2d(outplane, outplane, kernel_size=3, padding=1),
-            nn.BatchNorm2d(outplane),
-            nn.ReLU()
+            nn.Conv2d(outplane, outplane, kernel_size=3, padding=1), nn.BatchNorm2d(outplane), nn.ReLU()
         )
 
         self.max_pool2d = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
@@ -34,6 +29,7 @@ class ResBlock(nn.Module):
 
 
 class CifarRes(nn.Module):
+
     def __init__(self, num_classes=10):
         super().__init__()
         self.pre = nn.Sequential(
@@ -44,9 +40,7 @@ class CifarRes(nn.Module):
 
         self.res1 = ResBlock(inplane=64, outplane=128)
         self.conv1 = nn.Sequential(
-            nn.Conv2d(128, 256, kernel_size=3, padding=1),
-            nn.BatchNorm2d(256),
-            nn.ReLU(),
+            nn.Conv2d(128, 256, kernel_size=3, padding=1), nn.BatchNorm2d(256), nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )
 

@@ -4,6 +4,7 @@ import torch
 
 
 class Server:
+
     def __init__(self, args, device, test_loader):
         self.args = args
         self.attrs = {}
@@ -54,11 +55,17 @@ class Server:
                 else:
                     batch_feature.append(model.compute_feature(batch_x).detach())
             abs_val = torch.cat([torch.abs(batch_feature[ii]) for ii in range(len(batch_feature))], dim=0)
-            l2_dist = torch.cat([torch.norm(batch_feature[i] - batch_feature[i + 1], dim=-1, keepdim=False)
-                                 for i in range(len(batch_feature) - 1)], dim=0)
+            l2_dist = torch.cat(
+                [
+                    torch.norm(batch_feature[i] - batch_feature[i + 1], dim=-1, keepdim=False)
+                    for i in range(len(batch_feature) - 1)
+                ],
+                dim=0
+            )
             batch_feature = torch.nn.functional.normalize(torch.stack(batch_feature, dim=0), dim=-1)
-            cos_dist = torch.cat([torch.diag(batch_feature[i] @ batch_feature[i+1].T)
-                                  for i in range(len(batch_feature) - 1)])
+            cos_dist = torch.cat(
+                [torch.diag(batch_feature[i] @ batch_feature[i + 1].T) for i in range(len(batch_feature) - 1)]
+            )
 
             abs_vals.append(abs_val.cpu())
             l2_dists.append(l2_dist.cpu())

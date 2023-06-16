@@ -31,13 +31,15 @@ class Simulator:
         train_set = DatasetConstructor(self.args).get_dataset()
         test_set = DatasetConstructor(self.args).get_dataset(train=False)
         if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
-            test_set = sample(self.args.sample_method, test_set, self.args.client_num,
-                              alpha=self.args.alpha, args=self.args)[0]
+            test_set = sample(
+                self.args.sample_method, test_set, self.args.client_num, alpha=self.args.alpha, args=self.args
+            )[0]
 
         # split dataset into clients. alpha affects the distribution for dirichlet non-iid sampling.
         # If you don't use dirichlet, this parameter can be omitted.
-        train_sets = sample(self.args.sample_method, train_set, self.args.client_num,
-                            alpha=self.args.alpha, args=self.args)
+        train_sets = sample(
+            self.args.sample_method, train_set, self.args.client_num, alpha=self.args.alpha, args=self.args
+        )
 
         # if you need all clients to test locally use next line to split test sets
         # test_sets = sample(self.args.sample_method, test_set, self.args.client_num)
@@ -47,8 +49,7 @@ class Simulator:
             client_pool.append(Client(train_sets[i], args=self.args, client_id=i, test_dataset=None, test_frac=0.2))
         print(client_pool[0].model)
         logger.logging('All clients initialized.')
-        logger.logging('Parameter number in each model: {:.2f}M'
-                       .format(get_params_number(client_pool[0].model) / 1e6))
+        logger.logging('Parameter number in each model: {:.2f}M'.format(get_params_number(client_pool[0].model) / 1e6))
 
         # global initialization
         if self.args.fed_dict == 'all':
@@ -98,9 +99,15 @@ class Simulator:
 
             # Random sample participated clients in each communication round.
             participated_clients = np.array(range(self.args.client_num))
-            participated_clients = sorted(list(np.random.choice(participated_clients,
-                                                                int(self.args.client_sample_rate *
-                                                                    participated_clients.shape[0]), replace=False)))
+            participated_clients = sorted(
+                list(
+                    np.random.choice(
+                        participated_clients,
+                        int(self.args.client_sample_rate * participated_clients.shape[0]),
+                        replace=False
+                    )
+                )
+            )
 
             # Adjust learning rate.
             cur_lr = self.args.lr * (self.args.decay_factor ** i)
@@ -141,8 +148,11 @@ class Simulator:
             train_accuracies.append(train_acc / total_client)
             train_losses.append(train_loss / total_client)
             trans_costs.append(trans_cost)
-            logger.logging('epoch:{}, train_acc: {:.4f}, train_loss: {:.4f}, trans_cost: {:.4f}M'
-                           .format(i, train_accuracies[-1], train_losses[-1], trans_costs[-1] / 1e6))
+            logger.logging(
+                'epoch:{}, train_acc: {:.4f}, train_loss: {:.4f}, trans_cost: {:.4f}M'.format(
+                    i, train_accuracies[-1], train_losses[-1], trans_costs[-1] / 1e6
+                )
+            )
             tb_logger.add_scalar('train/acc', train_accuracies[-1], i)
             tb_logger.add_scalar('train/loss', train_losses[-1], i)
             tb_logger.add_scalar('train/lr', cur_lr, i)
@@ -162,8 +172,7 @@ class Simulator:
                 tb_logger.add_scalar('after_test/acc', tmp_test_acc, i)
                 tb_logger.add_scalar('after_test/loss', tmp_test_loss, i)
 
-                logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'
-                               .format(i, tmp_test_acc, tmp_test_loss))
+                logger.logging('epoch:{}, test_acc: {:.4f}, test_loss: {:.4f}'.format(i, tmp_test_acc, tmp_test_loss))
 
                 if not os.path.exists('./model_checkpoints'):
                     os.makedirs('./model_checkpoints')
