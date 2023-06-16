@@ -119,61 +119,67 @@ class Client:
         self.model.to('cpu')
         return avg_acc, avg_loss
 
-    def finetune(self, lr, momentum, optimizer, loss, local_eps=1):
+    def finetune(self, lr, momentum, optimizer, loss_name, local_eps=1):
         # Local training.
+        model_bak = copy.deepcopy(self.model)
         self.model.train()
         self.model.to(self.device)
-
-        # For calculating train loss and train acc.
-        correct = 0
-        total = 0
-        tot_loss = 0
-        tot_acces = []
-        tot_losses = []
+        res_dict = {}
 
         # Get weights to be finetuned.
-        if self.args.finetune_type != 'all':
-            weights = self.model.finetune_parameters()
-        else:
-            weights = self.model.parameters()
-        # Get optimizer and loss.
-        op = get_optimizer(name=optimizer, lr=lr, momentum=momentum, weights=weights)
-        criterion = get_loss(loss)
+        finetune_methods = self.args.finetune_type.split('&')
+        for ftype in finetune_methods:
+            # For calculating train loss and train acc.
+            correct = 0
+            total = 0
+            tot_loss = 0
+            tot_acces = []
+            tot_losses = []
+            weights = self.model.finetune_parameters(ftype)
+            # Get optimizer and loss.
+            op = get_optimizer(name=optimizer, lr=lr, momentum=momentum, weights=weights)
+            criterion = get_loss(loss_name)
 
-        # Main loop.
-        for epoch in range(local_eps):
-            self.model.train()
-            self.model.to(self.device)
-            for _, (batch_x, batch_y) in enumerate(self.train_dataloader):
-                batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
-                # If the task is nlp.
-                if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
-                    o = self.model(batch_x, batch_y)
-                    loss = criterion(o, batch_y)
-                    tot_loss += loss.item()
-                    _, y_pred = o[0][0].data.max(1, keepdim=True)
-                    correct += 1
+            # Main loop.
+            for epoch in range(local_eps):
+                self.model.train()
+                self.model.to(self.device)
+                for _, (batch_x, batch_y) in enumerate(self.train_dataloader):
+                    batch_x, batch_y = batch_x.to(self.device), batch_y.to(self.device)
+                    # If the task is nlp.
+                    if 'dataloader_type' in self.args.__dict__.keys() and self.args.dataloader_type == 'nlp':
+                        o = self.model(batch_x, batch_y)
+                        loss = criterion(o, batch_y)
+                        tot_loss += loss.item()
+                        _, y_pred = o[0][0].data.max(1, keepdim=True)
+                        correct += 1
+                        total += batch_y.shape[0]
+                    # CV task.
+                    else:
+                        o = self.model(batch_x)
+                        loss = criterion(o, batch_y)
+                        tot_loss += loss.item()
+                        _, y_pred = o.data.max(1, keepdim=True)
+                        correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
                     total += batch_y.shape[0]
-                # CV task.
-                else:
-                    o = self.model(batch_x)
-                    loss = criterion(o, batch_y)
-                    tot_loss += loss.item()
-                    _, y_pred = o.data.max(1, keepdim=True)
-                    correct += y_pred.eq(batch_y.data.view_as(y_pred)).long().sum().item()
-                total += batch_y.shape[0]
-                op.zero_grad()
-                loss.backward()
-                op.step()
-            # Test model every epoch.
-            acc, loss = self.test('CrossEntropyLoss')
-            tot_acces.append(acc)
-            tot_losses.append(loss)
+                    op.zero_grad()
+                    loss.backward()
+                    op.step()
+                # Test model every epoch.
+                acc, loss = self.test('CrossEntropyLoss')
+                tot_acces.append(acc)
+                tot_losses.append(loss)
 
-        avg_acc = correct / total
-        avg_loss = tot_loss / total
-        self.model.to('cpu')
-        return avg_acc, avg_loss, tot_acces, tot_losses
+            avg_acc = correct / total
+            avg_loss = tot_loss / total
+            res_dict[ftype] = {'train_acc': avg_acc, 'test_acc': tot_acces,
+                               'train_loss': avg_loss, 'test_loss': tot_losses}
+            self.model.to('cpu')
+            self.model = model_bak
+        new_dict = {}
+        for k in res_dict[finetune_methods[0]].keys():
+            new_dict[k] = {fm: res_dict[fm][k] for fm in finetune_methods}
+        return new_dict
 
     def test(self, loss):
         # Test model.

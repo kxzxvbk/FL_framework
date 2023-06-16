@@ -179,27 +179,37 @@ class Simulator:
             # Local training in each client.
             client = client_pool[j]
             # Get train_acc, train_loss, test_acc, test_loss
-            acc, loss, tmp_ta, tmp_tl = client.finetune(
+            tmp_dict = client.finetune(
                 lr=self.args.lr,
                 momentum=self.args.momentum,
                 optimizer=self.args.optimizer,
-                loss=self.args.loss,
+                loss_name=self.args.loss,
                 local_eps=self.args.loc_eps
             )
+            acc, loss, tmp_ta, tmp_tl = tmp_dict['train_acc'], tmp_dict['train_loss'], \
+                                        tmp_dict['test_acc'], tmp_dict['test_loss']
             tmp_train_acc.append(acc)
             tmp_train_loss.append(loss)
             tmp_test_acc.append(tmp_ta)
             tmp_test_loss.append(tmp_tl)
         # Logging the relevant metrics.
-        tmp_train_acc = sum(tmp_train_acc) / len(tmp_train_acc)
-        tmp_train_loss = sum(tmp_train_loss) / len(tmp_train_loss)
-        tb_logger.add_scalar('finetune/train_acc', tmp_train_acc, 0)
-        tb_logger.add_scalar('finetune/train_loss', tmp_train_loss, 0)
+        methods_keys = tmp_test_acc[0].keys()
+        for kk in methods_keys:
+            tta = [c[kk] for c in tmp_train_acc]
+            ttl = [c[kk] for c in tmp_train_loss]
 
-        for i in range(len(tmp_test_acc[0])):
-            mean_acc = sum([tmp_test_acc[j][i] for j in range(len(tmp_test_acc))]) \
-                       / len([tmp_test_acc[j][i] for j in range(len(tmp_test_acc))])
-            mean_loss = sum([tmp_test_loss[j][i] for j in range(len(tmp_test_loss))]) \
-                        / len([tmp_test_loss[j][i] for j in range(len(tmp_test_loss))])
-            tb_logger.add_scalar('finetune/test_acc', mean_acc, i)
-            tb_logger.add_scalar('finetune/test_loss', mean_loss, i)
+            tta = sum(tta) / len(tta)
+            ttl = sum(ttl) / len(ttl)
+            tb_logger.add_scalar(f'finetune/{kk}_train_acc', tta, 0)
+            tb_logger.add_scalar(f'finetune/{kk}_train_loss', ttl, 0)
+
+            tta = [c[kk] for c in tmp_test_acc]
+            ttl = [c[kk] for c in tmp_test_loss]
+
+            for i in range(len(tta[0])):
+                mean_acc = sum([tta[j][i] for j in range(len(tta))]) \
+                           / len([tta[j][i] for j in range(len(tta))])
+                mean_loss = sum([ttl[j][i] for j in range(len(ttl))]) \
+                            / len([ttl[j][i] for j in range(len(ttl))])
+                tb_logger.add_scalar(f'finetune/{kk}_test_acc', mean_acc, i)
+                tb_logger.add_scalar(f'finetune/{kk}_test_loss', mean_loss, i)

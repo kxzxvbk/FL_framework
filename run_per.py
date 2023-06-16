@@ -1,14 +1,16 @@
 from utils.personalized_simulator import Simulator
 import argparse
+from utils.utils import seed_everything
 
 
 def args_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--seed', type=int, default=0, help="set the seed of package")
     # federated arguments
-    parser.add_argument('--loc_eps', type=int, default=8, help="rounds of training")
-    parser.add_argument('--glob_eps', type=int, default=50, help="global training round")
+    parser.add_argument('--loc_eps', type=int, default=3, help="epochs of local training")
+    parser.add_argument('--glob_eps', type=int, default=1, help="global training round")
     parser.add_argument('--client_num', type=int, default=30, help="number of client")
-    parser.add_argument('--client_sample_rate', type=float, default=1, help="client_sample_rate")
+    parser.add_argument('--client_sample_rate', type=float, default=1, help="client sample rate in each round")
     parser.add_argument('--decay_factor', type=float, default=1, help="decay factor of learning rate")
     parser.add_argument('--aggr_method', type=str, default='avg', help='aggregation method')
     parser.add_argument('--fed_dict', type=str, default='no_side', help='only keys in this will use fed-learning')
@@ -26,14 +28,14 @@ def args_parser():
     parser.add_argument('--optimizer', type=str, default='Adam', help='optimizer type')
 
     # model
-    parser.add_argument('--model', type=str, default='lorpres', help='model name')
+    parser.add_argument('--model', type=str, default='cifarres', help='model name')
     parser.add_argument('--input_channel', type=int, default=3, help='input channel')
     parser.add_argument('--r', type=int, default=2, help='input channel')
     parser.add_argument('--bias', type=bool, default=True, help='input channel')
     parser.add_argument('--lorp_res', type=bool, default=True, help='input channel')
-    parser.add_argument('--conv_type', type=str, default='A', help='model name')
-    parser.add_argument('--class_number', type=int, default=10, help='class channel')
-    parser.add_argument('--finetune_type', type=str, default='all', help='model name')
+    parser.add_argument('--conv_type', type=str, default='A', help='conv type of lorp')
+    parser.add_argument('--class_number', type=int, default=10, help='class number')
+    parser.add_argument('--finetune_type', type=str, default='all&fc', help='finetune type')
 
     # dataset
     parser.add_argument('--dataset', type=str, default='cifar10', help="name of dataset")
@@ -50,5 +52,6 @@ def args_parser():
 
 if __name__ == '__main__':
     args = args_parser()
+    seed_everything(args.seed)
     simulator = Simulator(args)
     simulator.run()
